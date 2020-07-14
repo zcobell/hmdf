@@ -24,16 +24,18 @@ SOURCES += \
     src/timepoint.cpp
 
 HEADERS += \
-    src/hmdf.h \
-    src/cdate.h \
-    src/date.h \
-    src/hmdf_global.h \
-    src/logging.h \
-    src/station.h \
-    src/timepoint.h
+    include/hmdf.h \
+    include/cdate.h \
+    include/date.h \
+    include/hmdf_global.h \
+    include/logging.h \
+    include/station.h \
+    include/timepoint.h
 
 NETCDFHOME=/usr/local/Cellar/netcdf/4.7.4
-INCLUDEPATH += src thirdparty/boost_1_73_0 thirdparty/ezproj/src
+INCLUDEPATH += include
+INCLUDEPATH += thirdparty/boost_1_73_0 thirdparty/ezproj/src
+INCLUDEPATH += thirdparty/date
 INCLUDEPATH += $$NETCDFHOME/include
 
 # Default rules for deployment.

@@ -41,7 +41,15 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace phoenix = boost::phoenix;
 
-Hmdf::Hmdf() : m_success(false), m_null(true), m_dimension(0), m_epsg(4326) {}
+Hmdf::Hmdf(const std::string &filename, const CDate &coldstart,
+           const std::string &stationFile)
+    : m_filename(filename),
+      m_coldstart(coldstart),
+      m_stationFile(stationFile),
+      m_success(false),
+      m_null(true),
+      m_dimension(0),
+      m_epsg(4326) {}
 
 std::vector<std::string> Hmdf::headerData() const { return m_headerData; }
 
@@ -117,27 +125,27 @@ int Hmdf::resize(size_t n) {
   return 0;
 }
 
-int Hmdf::read(const std::string &filename, const CDate &coldstart,
-               const std::string &stationFile) {
+int Hmdf::read() {
   int ierr;
-  switch (this->getFiletype(filename)) {
+  switch (this->getFiletype(this->m_filename)) {
     case AdcircAscii:
-      ierr = this->readAdcircAscii(filename, stationFile, coldstart);
+      ierr = this->readAdcircAscii(this->m_filename, this->m_stationFile,
+                                   this->m_coldstart);
       break;
     case AdcircNetCDF:
-      ierr = this->readAdcircNetCDF(filename, coldstart);
+      ierr = this->readAdcircNetCDF(this->m_filename, this->m_coldstart);
       break;
     case Delft3D:
-      ierr = this->readDelft3D(filename);
+      ierr = this->readDelft3D(this->m_filename);
       break;
     case DFlowFM:
-      ierr = this->readDFlowFM(filename);
+      ierr = this->readDFlowFM(this->m_filename);
       break;
     case IMEDS:
-      ierr = this->readImeds(filename);
+      ierr = this->readImeds(this->m_filename);
       break;
     case NETCDF:
-      ierr = this->readgenericNetCDF(filename);
+      ierr = this->readgenericNetCDF(this->m_filename);
       break;
     default:
       ierr = 1;
@@ -319,6 +327,20 @@ int Hmdf::getAdcircVariableId(const int ncid, int &varid1, int &varid2) {
   }
   return 0;
 }
+
+std::string Hmdf::getStationFile() const { return m_stationFile; }
+
+void Hmdf::setStationFile(const std::string &stationFile) {
+  m_stationFile = stationFile;
+}
+
+CDate Hmdf::getColdstart() const { return m_coldstart; }
+
+void Hmdf::setColdstart(const CDate &coldstart) { m_coldstart = coldstart; }
+
+std::string Hmdf::getFilename() const { return m_filename; }
+
+void Hmdf::setFilename(const std::string &filename) { m_filename = filename; }
 
 int Hmdf::readAdcircNetCDF(const std::string &filename,
                            const CDate &coldstart) {

@@ -119,6 +119,11 @@ bool CDate::operator==(const CDate &d) const {
 
 bool CDate::operator!=(const CDate &d) const { return !(*(this) == d); }
 
+std::ostream &operator<<(std::ostream &os, const CDate &dt) {
+  os << dt.toString();
+  return os;
+}
+
 CDate &CDate::operator-=(const CDate::months &rhs) {
   s_datetime d(this->m_datetime);
   date::year_month_day dd = d.ymd();
@@ -293,21 +298,26 @@ void CDate::setMillisecond(int milliseconds) {
   return;
 }
 
-void CDate::fromString(const std::string &datestr) {
-  int year = stoi(datestr.substr(0, 4));
-  int month = stoi(datestr.substr(5, 2));
-  int day = stoi(datestr.substr(8, 2));
-  int hour = stoi(datestr.substr(11, 2));
-  int minute = stoi(datestr.substr(14, 2));
-  int second = stoi(datestr.substr(17, 2));
-  this->set(year, month, day, hour, minute, second);
+void CDate::fromString(const std::string &datestr, const std::string &format) {
+  const char *fmt = nullptr;
+  if (format == std::string()) {
+    fmt = "%Y-%m-%d %H:%M:%OS";
+  } else {
+    fmt = format.c_str();
+  }
+  std::stringstream ss(datestr);
+  date::from_stream(ss, fmt, this->m_datetime);
+  return;
 }
 
-std::string CDate::toString() const {
-  return boost::str(
-      boost::format("%04.4i-%02.2i-%02.2i %02.2i:%02.2i:%02.2i.%04.4i") %
-      this->year() % this->month() % this->day() % this->hour() %
-      this->minute() % this->second() % this->millisecond());
+std::string CDate::toString(const std::string &format) const {
+  std::string fmt;
+  if (format == std::string()) {
+    fmt = "%Y-%m-%d %H:%M:%OS";
+  } else {
+    fmt = format;
+  }
+  return date::format(fmt, this->m_datetime);
 }
 
 std::chrono::system_clock::time_point CDate::time_point() const {

@@ -118,10 +118,7 @@ class CDate {
   CDate HMDF_EXPORT &operator-=(const CDate::months &rhs);
 
   friend std::ostream HMDF_EXPORT &operator<<(std::ostream &os,
-                                              const CDate &dt) {
-    os << dt.toString();
-    return os;
-  }
+                                              const CDate &dt);
 
   // end operator overloads
 #endif
@@ -174,9 +171,11 @@ class CDate {
   int HMDF_EXPORT millisecond() const;
   void HMDF_EXPORT setMillisecond(int milliseconds);
 
-  void HMDF_EXPORT fromString(const std::string &datestr);
+  void HMDF_EXPORT fromString(const std::string &datestr,
+                              const std::string &format = std::string());
 
-  std::string HMDF_EXPORT toString() const;
+  std::string HMDF_EXPORT
+  toString(const std::string &format = std::string()) const;
 
   std::chrono::system_clock::time_point HMDF_EXPORT time_point() const;
 

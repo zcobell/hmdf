@@ -21,20 +21,16 @@
 #include <cassert>
 #include <cmath>
 
-Timepoint::Timepoint() : m_date(0) { this->m_v = {0}; }
+Timepoint::Timepoint() : m_date(0), m_v{0} {}
 
-Timepoint::Timepoint(const CDate &d, const double v) : m_date(d) { m_v = {v}; };
+Timepoint::Timepoint(const CDate &d, const double v) : m_date(d), m_v{v} {};
 
 Timepoint::Timepoint(const CDate &d, const double v1, const double v2)
-    : m_date(d) {
-  this->m_v = {v1, v2};
-};
+    : m_date(d), m_v{v1, v2} {};
 
 Timepoint::Timepoint(const CDate &d, const double v1, const double v2,
                      const double v3)
-    : m_date(d) {
-  this->m_v = {v1, v2, v3};
-};
+    : m_date(d), m_v{v1, v2, v3} {};
 
 Timepoint::Timepoint(const CDate &d, const std::vector<double> &v)
     : m_date(d), m_v(v) {}
@@ -155,8 +151,12 @@ std::ostream &operator<<(std::ostream &os, const Timepoint &t) {
 }
 
 double Timepoint::magnitude() {
-  assert(this->m_v.size() == 2);
-  return std::sqrt(std::pow(this->m_v[0], 2.0) + std::pow(this->m_v[1], 2.0));
+  assert(this->m_v.size() > 1);
+  double s = 0.0;
+  for (auto &e : m_v) {
+    s += std::pow(e, 2.0);
+  }
+  return std::pow(s, 1.0 / static_cast<double>(m_v.size()));
 }
 
 double Timepoint::direction() {
@@ -164,9 +164,10 @@ double Timepoint::direction() {
   double a = std::atan2(m_v[1], m_v[0]);
   a = a * 180.0 / M_PI;
   if (a >= 360.0) {
-    a = a - 360.0;
+    return a - 360.0;
   } else if (a < 0.0) {
-    a = a + 360.0;
+    return a + 360.0;
+  } else {
+    return a;
   }
-  return a;
 }

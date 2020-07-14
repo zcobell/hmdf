@@ -26,22 +26,29 @@
 
 class Timepoint {
  public:
+  /// Default constructor
   HMDF_EXPORT Timepoint();
+
+  /// Baseline constructors (1d, 2d, 3d)
+  HMDF_EXPORT Timepoint(const CDate &d, const double v);
+  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2);
+  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2,
+                        const double v3);
+
+  /// Generic vector constructor
+  HMDF_EXPORT Timepoint(const CDate &d, const std::vector<double> &v);
+
+  /// Templated constructor (c++ only) using variadic template
+  template <typename... Double>
+  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2,
+                        const double v3, const Double &... args)
+      : m_date(d), m_v{v1, v2, v3, args...} {}
 
   static constexpr double nullValue() {
     return std::numeric_limits<double>::max();
   }
 
   static Timepoint null() { return Timepoint(CDate(), nullValue()); }
-
-  HMDF_EXPORT Timepoint(const CDate &d, const double v);
-
-  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2);
-
-  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2,
-                        const double v3);
-
-  HMDF_EXPORT Timepoint(const CDate &d, const std::vector<double> &v);
 
   CDate HMDF_EXPORT date() const;
   void HMDF_EXPORT setDate(const CDate &date);

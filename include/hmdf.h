@@ -26,11 +26,11 @@
 
 class Hmdf {
  public:
-  HMDF_EXPORT Hmdf();
+  HMDF_EXPORT Hmdf(const std::string &filename = std::string(),
+                   const CDate &coldstart = CDate(),
+                   const std::string &stationFile = std::string());
 
-  int HMDF_EXPORT read(const std::string &filename,
-                       const CDate &coldstart = CDate(),
-                       const std::string &stationFile = std::string());
+  int HMDF_EXPORT read();
   int HMDF_EXPORT write(const std::string &filename);
 
   size_t HMDF_EXPORT nStations() const;
@@ -70,6 +70,15 @@ class Hmdf {
   const_iterator HMDF_EXPORT cend() const noexcept;
 #endif
 
+  std::string getFilename() const;
+  void setFilename(const std::string &filename);
+
+  CDate getColdstart() const;
+  void setColdstart(const CDate &coldstart);
+
+  std::string getStationFile() const;
+  void setStationFile(const std::string &stationFile);
+
  private:
   enum FileType {
     None,
@@ -101,6 +110,9 @@ class Hmdf {
   void ncCheck(const int retcode);
   int getAdcircVariableId(const int ncid, int &varid1, int &varid2);
 
+  std::string m_filename;
+  CDate m_coldstart;
+  std::string m_stationFile;
   std::vector<std::string> m_headerData;
   bool m_success, m_null;
   int m_dimension;

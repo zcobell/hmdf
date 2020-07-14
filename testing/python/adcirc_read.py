@@ -4,12 +4,12 @@ import PyHmdf
 
 
 #...Read an ADCIRC fort.61 with a duplicate record
-m1 = PyHmdf.Hmdf()
-ierr = m1.read("../testing/test_files/fort_dup.61",PyHmdf.CDate(2019,2,5,0,0,0),"../testing/test_files/stations.csv")
+m1 = PyHmdf.Hmdf("../testing/test_files/fort_dup.61",PyHmdf.CDate(2019,2,5,0,0,0),"../testing/test_files/stations.csv")
+ierr = m1.read()
 
 #...Read a netCDF ADCIRC fort.72.nc 
-m2 = PyHmdf.Hmdf()
-ierr = m2.read("../testing/test_files/fort.72.nc",PyHmdf.CDate(2019,2,5,0,0,0))
+m2 = PyHmdf.Hmdf("../testing/test_files/fort.72.nc",PyHmdf.CDate(2019,2,5,0,0,0))
+ierr = m2.read()
 
 #...Find and remove the duplicate records in the data
 m1.sanitize()
