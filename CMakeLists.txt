@@ -9,34 +9,6 @@
 # platform environment.
 #
 # ##############################################################################
-include(CheckIncludeFiles)
-include(CheckLibraryExists)
-include(CheckFunctionExists)
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-
-# ...Set the default build type
-if(DEFINED CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE
-      ${CMAKE_BUILD_TYPE}
-      CACHE STRING "Choose the type of
-        build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug
-        Release RelWithDebInfo MinSizeRel.")
-elseif(COVERAGE)
-  set(CMAKE_BUILD_TYPE
-      Debug
-      CACHE
-        STRING
-        "Choose the type of build,
-            options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release
-            RelWithDebInfo MinSizeRel.")
-else()
-  set(CMAKE_BUILD_TYPE
-      Release
-      CACHE STRING "Choose the type of build,
-        options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release
-        RelWithDebInfo MinSizeRel.")
-endif()
 
 # ##############################################################################
 # GENERAL OPTIONS
@@ -46,6 +18,31 @@ project(
   HMDF
   LANGUAGES C CXX
   VERSION 0.0.1)
+include(CheckIncludeFiles)
+include(CheckLibraryExists)
+include(CheckFunctionExists)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+include(cmake/StandardProjectSettings.cmake)
+include(cmake/PreventInSourceBuilds.cmake)
+
+add_library( project_options INTERFACE )
+target_compile_features( project_options INTERFACE cxx_std_11 )
+
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+  option(ENABLE_BUILD_WITH_TIME_TRACE "Enable -ftime-trace to generate time tracing .json files on clang" OFF)
+  if(ENABLE_BUILD_WITH_TIME_TRACE)
+    add_compile_definitions(project_options INTERFACE -ftime-trace)
+  endif()
+endif()
+
+add_library( project_warnings INTERFACE )
+include(cmake/Cache.cmake)
+include(cmake/CompilerWarnings.cmake)
+set_project_warnings(project_warnings)
+include(cmake/Sanitizers.cmake)
+enable_sanitizers(project_options)
+include(cmake/StaticAnalyzers.cmake)
 # ##############################################################################
 
 # ##############################################################################

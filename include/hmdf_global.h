@@ -18,21 +18,23 @@
 // You should have received a copy of the GNU General Public License
 // along with HMDF.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------*/
-#if defined(_MSC_VER) || defined(WIN64) || defined(_WIN64) || defined(__WIN64__) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#  define Q_DECL_EXPORT __declspec(dllexport)
-#  define Q_DECL_IMPORT __declspec(dllimport)
+#if defined(_MSC_VER) || defined(WIN64) || defined(_WIN64) ||  \
+    defined(__WIN64__) || defined(WIN32) || defined(_WIN32) || \
+    defined(__WIN32__) || defined(__NT__)
+#define Q_DECL_EXPORT __declspec(dllexport)
+#define Q_DECL_IMPORT __declspec(dllimport)
 #elif defined(SWIG)
-#  define Q_DECL_EXPORT
-#  define Q_DECL_IMPORT
+#define Q_DECL_EXPORT
+#define Q_DECL_IMPORT
 #else
-#  define Q_DECL_EXPORT     __attribute__((visibility("default")))
-#  define Q_DECL_IMPORT     __attribute__((visibility("default")))
+#define Q_DECL_EXPORT __attribute__((visibility("default")))
+#define Q_DECL_IMPORT __attribute__((visibility("default")))
 #endif
 
 #if defined(HMDF_LIBRARY)
-#  define HMDF_EXPORT Q_DECL_EXPORT
+#define HMDF_EXPORT Q_DECL_EXPORT
 #else
-#  define HMDF_EXPORT Q_DECL_IMPORT
+#define HMDF_EXPORT Q_DECL_IMPORT
 #endif
 
-#endif // HMDF_GLOBAL_H
+#endif  // HMDF_GLOBAL_H
