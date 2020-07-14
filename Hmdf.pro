@@ -17,15 +17,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    src/date.cpp \
     src/hmdf.cpp \
-    src/cdate.cpp \
     src/logging.cpp \
     src/station.cpp \
     src/timepoint.cpp
 
 HEADERS += \
+    include/date.h \
     include/hmdf.h \
-    include/cdate.h \
     include/date.h \
     include/hmdf_global.h \
     include/logging.h \
@@ -35,7 +35,7 @@ HEADERS += \
 NETCDFHOME=/usr/local/Cellar/netcdf/4.7.4
 INCLUDEPATH += include
 INCLUDEPATH += thirdparty/boost_1_73_0 thirdparty/ezproj/src
-INCLUDEPATH += thirdparty/date
+INCLUDEPATH += thirdparty
 INCLUDEPATH += $$NETCDFHOME/include
 
 # Default rules for deployment.

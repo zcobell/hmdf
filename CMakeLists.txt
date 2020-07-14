@@ -279,7 +279,7 @@ set(HMDF_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/station.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/timepoint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/cdate.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/date.cpp)
 
 add_library(hmdf SHARED ${HMDF_SOURCES})
 
@@ -288,7 +288,7 @@ set(HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/hmdf.h)
 target_include_directories(
   hmdf
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-          ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/date
+          ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
           ${Boost_INCLUDE_DIRS}
           ${NETCDF_INCLUDE_DIR})
@@ -376,7 +376,7 @@ if(SWIG_FOUND
       COMMAND
         ${SWIG_EXECUTABLE} -outdir ${CMAKE_CURRENT_BINARY_DIR} -c++ -python
         ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/include
-        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/date
+        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
         -I${PYTHON_INCLUDE_PATH} -o
         ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/python_hmdf_wrap.cxx.1
@@ -395,7 +395,7 @@ if(SWIG_FOUND
       COMMAND
         ${SWIG_EXECUTABLE} -outdir ${CMAKE_CURRENT_BINARY_DIR} -c++ -python
         ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/include
-        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/date
+        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
         -I${PYTHON_INCLUDE_PATH} -o
         ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/python_hmdf_wrap.cxx

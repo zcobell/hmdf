@@ -23,21 +23,21 @@
 
 Timepoint::Timepoint() : m_date(0), m_v{0} {}
 
-Timepoint::Timepoint(const CDate &d, const double v) : m_date(d), m_v{v} {};
+Timepoint::Timepoint(const Date &d, const double v) : m_date(d), m_v{v} {};
 
-Timepoint::Timepoint(const CDate &d, const double v1, const double v2)
+Timepoint::Timepoint(const Date &d, const double v1, const double v2)
     : m_date(d), m_v{v1, v2} {};
 
-Timepoint::Timepoint(const CDate &d, const double v1, const double v2,
+Timepoint::Timepoint(const Date &d, const double v1, const double v2,
                      const double v3)
     : m_date(d), m_v{v1, v2, v3} {};
 
-Timepoint::Timepoint(const CDate &d, const std::vector<double> &v)
+Timepoint::Timepoint(const Date &d, const std::vector<double> &v)
     : m_date(d), m_v(v) {}
 
-CDate Timepoint::date() const { return this->m_date; }
+Date Timepoint::date() const { return this->m_date; }
 
-void Timepoint::setDate(const CDate &date) { this->m_date = date; }
+void Timepoint::setDate(const Date &date) { this->m_date = date; }
 
 double Timepoint::value(size_t index) {
   assert(index < m_v.size());
@@ -46,19 +46,19 @@ double Timepoint::value(size_t index) {
 
 double Timepoint::value() { return this->m_v[0]; }
 
-void Timepoint::set(const CDate &d, const double v) {
+void Timepoint::set(const Date &d, const double v) {
   this->m_date = d;
   this->m_v[0] = v;
 }
 
-void Timepoint::set(const CDate &d, const double v1, const double v2) {
+void Timepoint::set(const Date &d, const double v1, const double v2) {
   assert(this->m_v.size() == 2);
   this->m_date = d;
   this->m_v[0] = v1;
   this->m_v[1] = v2;
 }
 
-void Timepoint::set(const CDate &d, const double v1, const double v2,
+void Timepoint::set(const Date &d, const double v1, const double v2,
                     const double v3) {
   assert(this->m_v.size() == 3);
   this->m_date = d;
@@ -67,7 +67,7 @@ void Timepoint::set(const CDate &d, const double v1, const double v2,
   this->m_v[2] = v3;
 }
 
-void Timepoint::set(const CDate &d, const std::vector<double> &v) {
+void Timepoint::set(const Date &d, const std::vector<double> &v) {
   assert(this->m_v.size() == v.size());
   this->m_date = d;
   this->m_v = v;

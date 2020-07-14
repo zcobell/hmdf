@@ -34,14 +34,14 @@
 #include "boost/config/warning_disable.hpp"
 #include "boost/spirit/include/phoenix.hpp"
 #include "boost/spirit/include/qi.hpp"
-#include "cdate.h"
+#include "date.h"
 #include "logging.h"
 
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace phoenix = boost::phoenix;
 
-Hmdf::Hmdf(const std::string &filename, const CDate &coldstart,
+Hmdf::Hmdf(const std::string &filename, const Date &coldstart,
            const std::string &stationFile)
     : m_filename(filename),
       m_coldstart(coldstart),
@@ -209,7 +209,7 @@ size_t Hmdf::readAdcircStationFile(const std::string &filename,
 
 int Hmdf::readAdcircAscii(const std::string &filename,
                           const std::string &stationFile,
-                          const CDate &coldstart) {
+                          const Date &coldstart) {
   std::vector<double> x, y;
   size_t nsta = this->readAdcircStationFile(stationFile, x, y);
 
@@ -263,7 +263,7 @@ int Hmdf::readAdcircAscii(const std::string &filename,
                              (qi::double_[phoenix::ref(t) = qi::_1] >>
                               qi::int_[phoenix::ref(it) = qi::_1]),
                              ascii::space);
-    CDate d = coldstart;
+    Date d = coldstart;
     d.addSeconds(t);
     for (size_t j = 0; j < nsta; ++j) {
       std::getline(f, line);
@@ -334,16 +334,16 @@ void Hmdf::setStationFile(const std::string &stationFile) {
   m_stationFile = stationFile;
 }
 
-CDate Hmdf::getColdstart() const { return m_coldstart; }
+Date Hmdf::getColdstart() const { return m_coldstart; }
 
-void Hmdf::setColdstart(const CDate &coldstart) { m_coldstart = coldstart; }
+void Hmdf::setColdstart(const Date &coldstart) { m_coldstart = coldstart; }
 
 std::string Hmdf::getFilename() const { return m_filename; }
 
 void Hmdf::setFilename(const std::string &filename) { m_filename = filename; }
 
 int Hmdf::readAdcircNetCDF(const std::string &filename,
-                           const CDate &coldstart) {
+                           const Date &coldstart) {
   int ncid;
   int dimid_time, dimid_nsta, dimid_namelen;
   int varid_time, varid_x, varid_y, varid_staname;
@@ -360,7 +360,7 @@ int Hmdf::readAdcircNetCDF(const std::string &filename,
   ncCheck(nc_inq_dimlen(ncid, dimid_time, &nsnap));
   std::unique_ptr<double[]> t(new double[nsnap]);
   ncCheck(nc_get_var(ncid, varid_time, t.get()));
-  std::vector<CDate> date(nsnap);
+  std::vector<Date> date(nsnap);
   for (size_t i = 0; i < nsnap; ++i) {
     date[i] = coldstart + t[i];
   }
@@ -500,7 +500,7 @@ int Hmdf::readImeds(const std::string &filename) {
       bool status = Hmdf::splitStringHmdfFormat(templine, year, month, day,
                                                 hour, minute, second, value);
       if (status) {
-        CDate d(year, month, day, hour, minute, second);
+        Date d(year, month, day, hour, minute, second);
         if (value <= -9999) value = Timepoint::nullValue();
         s << Timepoint(d, value);
       } else {

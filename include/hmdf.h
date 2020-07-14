@@ -27,7 +27,7 @@
 class Hmdf {
  public:
   HMDF_EXPORT Hmdf(const std::string &filename = std::string(),
-                   const CDate &coldstart = CDate(),
+                   const Date &coldstart = Date(),
                    const std::string &stationFile = std::string());
 
   int HMDF_EXPORT read();
@@ -73,8 +73,8 @@ class Hmdf {
   std::string getFilename() const;
   void setFilename(const std::string &filename);
 
-  CDate getColdstart() const;
-  void setColdstart(const CDate &coldstart);
+  Date getColdstart() const;
+  void setColdstart(const Date &coldstart);
 
   std::string getStationFile() const;
   void setStationFile(const std::string &stationFile);
@@ -99,8 +99,8 @@ class Hmdf {
                                     int &minute, int &second, double &value);
 
   int readAdcircAscii(const std::string &filename,
-                      const std::string &stationFile, const CDate &coldstart);
-  int readAdcircNetCDF(const std::string &filename, const CDate &coldstart);
+                      const std::string &stationFile, const Date &coldstart);
+  int readAdcircNetCDF(const std::string &filename, const Date &coldstart);
   int readDelft3D(const std::string &filename);
   int readDFlowFM(const std::string &filename);
   int readImeds(const std::string &filename);
@@ -111,7 +111,7 @@ class Hmdf {
   int getAdcircVariableId(const int ncid, int &varid1, int &varid2);
 
   std::string m_filename;
-  CDate m_coldstart;
+  Date m_coldstart;
   std::string m_stationFile;
   std::vector<std::string> m_headerData;
   bool m_success, m_null;

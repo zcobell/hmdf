@@ -21,7 +21,7 @@
 #include <array>
 #include <cmath>
 
-#include "cdate.h"
+#include "date.h"
 #include "hmdf_global.h"
 
 class Timepoint {
@@ -30,17 +30,17 @@ class Timepoint {
   HMDF_EXPORT Timepoint();
 
   /// Baseline constructors (1d, 2d, 3d)
-  HMDF_EXPORT Timepoint(const CDate &d, const double v);
-  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2);
-  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2,
+  HMDF_EXPORT Timepoint(const Date &d, const double v);
+  HMDF_EXPORT Timepoint(const Date &d, const double v1, const double v2);
+  HMDF_EXPORT Timepoint(const Date &d, const double v1, const double v2,
                         const double v3);
 
   /// Generic vector constructor
-  HMDF_EXPORT Timepoint(const CDate &d, const std::vector<double> &v);
+  HMDF_EXPORT Timepoint(const Date &d, const std::vector<double> &v);
 
   /// Templated constructor (c++ only) using variadic template
   template <typename... Double>
-  HMDF_EXPORT Timepoint(const CDate &d, const double v1, const double v2,
+  HMDF_EXPORT Timepoint(const Date &d, const double v1, const double v2,
                         const double v3, const Double &... args)
       : m_date(d), m_v{v1, v2, v3, args...} {}
 
@@ -48,10 +48,10 @@ class Timepoint {
     return std::numeric_limits<double>::max();
   }
 
-  static Timepoint null() { return Timepoint(CDate(), nullValue()); }
+  static Timepoint null() { return Timepoint(Date(), nullValue()); }
 
-  CDate HMDF_EXPORT date() const;
-  void HMDF_EXPORT setDate(const CDate &date);
+  Date HMDF_EXPORT date() const;
+  void HMDF_EXPORT setDate(const Date &date);
 
   double HMDF_EXPORT value(size_t index);
   double HMDF_EXPORT value();
@@ -59,11 +59,11 @@ class Timepoint {
   double HMDF_EXPORT magnitude();
   double HMDF_EXPORT direction();
 
-  void HMDF_EXPORT set(const CDate &d, const double v);
-  void HMDF_EXPORT set(const CDate &d, const double v1, const double v2);
-  void HMDF_EXPORT set(const CDate &d, const double v1, const double v2,
+  void HMDF_EXPORT set(const Date &d, const double v);
+  void HMDF_EXPORT set(const Date &d, const double v1, const double v2);
+  void HMDF_EXPORT set(const Date &d, const double v1, const double v2,
                        const double v3);
-  void HMDF_EXPORT set(const CDate &d, const std::vector<double> &v);
+  void HMDF_EXPORT set(const Date &d, const std::vector<double> &v);
 
   void HMDF_EXPORT setValue(const double v);
   void HMDF_EXPORT setValue(const size_t index, const double v);
@@ -97,7 +97,7 @@ class Timepoint {
   friend std::ostream &operator<<(std::ostream &os, const Timepoint &t);
 
  private:
-  CDate m_date;
+  Date m_date;
   std::vector<double> m_v;
 };
 

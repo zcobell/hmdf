@@ -33,7 +33,7 @@
     #include "hmdf.h"
     #include "station.h"
     #include "timepoint.h"
-    #include "cdate.h"
+    #include "date.h"
 %}
 
 %include <std_string.i>
@@ -63,4 +63,4 @@ namespace std {
 %include "hmdf.h"
 %include "station.h"
 %include "timepoint.h"
-%include "cdate.h"
+%include "date.h"

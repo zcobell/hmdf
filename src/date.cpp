@@ -16,14 +16,14 @@
 // You should have received a copy of the GNU General Public License
 // along with HMDF.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------*/
-#include "cdate.h"
+#include "date.h"
 
 #include <cassert>
 #include <chrono>
 #include <iostream>
 
 #include "boost/format.hpp"
-#include "date.h"
+#include "date_hh/date.h"
 #include "logging.h"
 
 struct s_date {
@@ -57,7 +57,7 @@ struct s_datetime {
   int minute() const { return tt.minutes().count(); }
   int second() const { return tt.seconds().count(); }
   int milliseconds() const {
-    CDate c(year(), month(), day(), hour(), minute(), second());
+    Date c(year(), month(), day(), hour(), minute(), second());
     return std::chrono::duration_cast<std::chrono::milliseconds>(t -
                                                                  c.time_point())
         .count();
@@ -74,57 +74,53 @@ constexpr date::year_month_day c_epoch() {
   return date::year_month_day(date::year(1970) / 1 / 1);
 }
 
-CDate::CDate() { this->set(1970, 1, 1, 0, 0, 0, 0); }
+Date::Date() { this->set(1970, 1, 1, 0, 0, 0, 0); }
 
-CDate::CDate(const std::chrono::system_clock::time_point &t) { this->set(t); }
+Date::Date(const std::chrono::system_clock::time_point &t) { this->set(t); }
 
-CDate::CDate(const std::vector<int> &v) { this->set(v); }
+Date::Date(const std::vector<int> &v) { this->set(v); }
 
-CDate::CDate(const CDate &d) { this->set(d.get()); }
+Date::Date(const Date &d) { this->set(d.get()); }
 
-CDate::CDate(int year, int month, int day, int hour, int minute, int second,
-             int millisecond) {
+Date::Date(int year, int month, int day, int hour, int minute, int second,
+           int millisecond) {
   this->set(year, month, day, hour, minute, second, millisecond);
 }
 
-void CDate::addSeconds(const long &value) {
-  this->m_datetime += seconds(value);
-}
+void Date::addSeconds(const long &value) { this->m_datetime += seconds(value); }
 
-void CDate::addMinutes(const long &value) {
-  this->m_datetime += minutes(value);
-}
+void Date::addMinutes(const long &value) { this->m_datetime += minutes(value); }
 
-void CDate::addHours(const long &value) { this->m_datetime += hours(value); }
+void Date::addHours(const long &value) { this->m_datetime += hours(value); }
 
-void CDate::addDays(const long &value) { this->m_datetime += days(value); }
+void Date::addDays(const long &value) { this->m_datetime += days(value); }
 
-void CDate::addWeeks(const long &value) { this->m_datetime += weeks(value); }
+void Date::addWeeks(const long &value) { this->m_datetime += weeks(value); }
 
-void CDate::addMonths(const long &value) { this->m_datetime += months(value); }
+void Date::addMonths(const long &value) { this->m_datetime += months(value); }
 
-void CDate::addYears(const long &value) { this->m_datetime += years(value); }
+void Date::addYears(const long &value) { this->m_datetime += years(value); }
 
-bool CDate::operator<(const CDate &d) const {
+bool Date::operator<(const Date &d) const {
   return this->time_point() < d.time_point();
 }
 
-bool CDate::operator>(const CDate &d) const {
+bool Date::operator>(const Date &d) const {
   return this->time_point() > d.time_point();
 }
 
-bool CDate::operator==(const CDate &d) const {
+bool Date::operator==(const Date &d) const {
   return this->time_point() == d.time_point();
 }
 
-bool CDate::operator!=(const CDate &d) const { return !(*(this) == d); }
+bool Date::operator!=(const Date &d) const { return !(*(this) == d); }
 
-std::ostream &operator<<(std::ostream &os, const CDate &dt) {
+std::ostream &operator<<(std::ostream &os, const Date &dt) {
   os << dt.toString();
   return os;
 }
 
-CDate &CDate::operator-=(const CDate::months &rhs) {
+Date &Date::operator-=(const Date::months &rhs) {
   s_datetime d(this->m_datetime);
   date::year_month_day dd = d.ymd();
   dd -= date::months(rhs);
@@ -134,7 +130,7 @@ CDate &CDate::operator-=(const CDate::months &rhs) {
   return *this;
 }
 
-CDate &CDate::operator-=(const CDate::years &rhs) {
+Date &Date::operator-=(const Date::years &rhs) {
   s_datetime d(this->m_datetime);
   date::year_month_day dd = d.ymd();
   dd -= date::years(rhs);
@@ -144,7 +140,7 @@ CDate &CDate::operator-=(const CDate::years &rhs) {
   return *this;
 }
 
-CDate &CDate::operator+=(const CDate::months &rhs) {
+Date &Date::operator+=(const Date::months &rhs) {
   s_datetime d(this->m_datetime);
   date::year_month_day dd = d.ymd();
   dd += date::months(rhs);
@@ -154,7 +150,7 @@ CDate &CDate::operator+=(const CDate::months &rhs) {
   return *this;
 }
 
-CDate &CDate::operator+=(const CDate::years &rhs) {
+Date &Date::operator+=(const Date::years &rhs) {
   s_datetime d(this->m_datetime);
   date::year_month_day dd = d.ymd();
   dd += date::years(rhs);
@@ -164,8 +160,8 @@ CDate &CDate::operator+=(const CDate::years &rhs) {
   return *this;
 }
 
-void CDate::set(int year, int month, int day, int hour, int minute, int second,
-                int millisecond) {
+void Date::set(int year, int month, int day, int hour, int minute, int second,
+               int millisecond) {
   auto ymd = date::year(year) / date::month(month) / date::day(day);
   if (!ymd.ok()) {
     hmdf_throw_exception("Invalid date");
@@ -177,7 +173,7 @@ void CDate::set(int year, int month, int day, int hour, int minute, int second,
   return;
 }
 
-std::vector<int> CDate::get() const {
+std::vector<int> Date::get() const {
   s_datetime time(this->m_datetime);
   std::vector<int> v(7);
   v[0] = time.year();
@@ -190,138 +186,126 @@ std::vector<int> CDate::get() const {
   return v;
 }
 
-void CDate::set(const std::vector<int> &v) {
+void Date::set(const std::vector<int> &v) {
   std::vector<int> v2(7);
   std::copy(v.begin(), v.end(), v2.begin());
 
   this->set(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
 }
 
-void CDate::set(const std::chrono::system_clock::time_point &t) {
+void Date::set(const std::chrono::system_clock::time_point &t) {
   this->m_datetime = t;
 }
 
-void CDate::set(const CDate &v) { this->set(v.time_point()); }
+void Date::set(const Date &v) { this->set(v.time_point()); }
 
-void CDate::fromSeconds(long seconds) {
+void Date::fromSeconds(long seconds) {
   this->m_datetime = date::sys_days(c_epoch()) + std::chrono::seconds(seconds);
   return;
 }
 
-void CDate::fromMSeconds(long long mseconds) {
+void Date::fromMSeconds(long long mseconds) {
   this->fromSeconds(mseconds / 1000);
 }
 
-long CDate::toSeconds() const {
+long Date::toSeconds() const {
   return std::chrono::duration_cast<std::chrono::seconds>(
              this->m_datetime - date::sys_days(c_epoch()))
       .count();
 }
 
-long long CDate::toMSeconds() const { return this->toSeconds() * 1000; }
+long long Date::toMSeconds() const { return this->toSeconds() * 1000; }
 
-int CDate::year() const {
+int Date::year() const {
   s_date d(this->m_datetime);
   return d.year();
 }
 
-void CDate::setYear(int year) {
+void Date::setYear(int year) {
   s_datetime d(this->m_datetime);
   this->set(year, d.month(), d.day(), d.hour(), d.minute(), d.second());
   return;
 }
 
-int CDate::month() const {
+int Date::month() const {
   s_date d(this->m_datetime);
   return d.month();
 }
 
-void CDate::setMonth(int month) {
+void Date::setMonth(int month) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), month, d.day(), d.hour(), d.minute(), d.second());
   return;
 }
 
-int CDate::day() const {
+int Date::day() const {
   s_date d(this->m_datetime);
   return d.day();
 }
 
-void CDate::setDay(int day) {
+void Date::setDay(int day) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), day, d.hour(), d.minute(), d.second());
   return;
 }
 
-int CDate::hour() const {
+int Date::hour() const {
   s_datetime d(this->m_datetime);
   return d.hour();
 }
 
-void CDate::setHour(int hour) {
+void Date::setHour(int hour) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), hour, d.minute(), d.second());
   return;
 }
 
-int CDate::minute() const {
+int Date::minute() const {
   s_datetime d(this->m_datetime);
   return d.minute();
 }
 
-void CDate::setMinute(int minute) {
+void Date::setMinute(int minute) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), d.hour(), minute, d.second());
   return;
 }
 
-int CDate::second() const {
+int Date::second() const {
   s_datetime d(this->m_datetime);
   return d.second();
 }
 
-void CDate::setSecond(int second) {
+void Date::setSecond(int second) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), d.hour(), d.minute(), second);
   return;
 }
 
-int CDate::millisecond() const {
+int Date::millisecond() const {
   s_datetime d(this->m_datetime);
   return d.milliseconds();
 }
 
-void CDate::setMillisecond(int milliseconds) {
+void Date::setMillisecond(int milliseconds) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), d.hour(), d.minute(), d.second(),
             milliseconds);
   return;
 }
 
-void CDate::fromString(const std::string &datestr, const std::string &format) {
-  const char *fmt = nullptr;
-  if (format == std::string()) {
-    fmt = "%Y-%m-%d %H:%M:%OS";
-  } else {
-    fmt = format.c_str();
-  }
+void Date::fromString(const std::string &datestr, const std::string &format) {
   std::stringstream ss(datestr);
-  date::from_stream(ss, fmt, this->m_datetime);
+  date::from_stream(ss, format.c_str(), this->m_datetime);
   return;
 }
 
-std::string CDate::toString(const std::string &format) const {
-  std::string fmt;
-  if (format == std::string()) {
-    fmt = "%Y-%m-%d %H:%M:%OS";
-  } else {
-    fmt = format;
-  }
-  return date::format(fmt, this->m_datetime);
+std::string Date::toString(const std::string &format) const {
+  return date::format(format, this->m_datetime);
 }
 
-std::chrono::system_clock::time_point CDate::time_point() const {
+std::chrono::system_clock::time_point Date::time_point() const {
   return this->m_datetime;
 }
 
-CDate CDate::now() { return CDate(std::chrono::system_clock::now()); }
+Date Date::now() { return Date(std::chrono::system_clock::now()); }
