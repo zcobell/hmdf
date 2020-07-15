@@ -26,12 +26,12 @@
 
 class Hmdf {
  public:
-  HMDF_EXPORT Hmdf(const std::string &filename = std::string(),
+  HMDF_EXPORT Hmdf(std::string filename = std::string(),
                    const Date &coldstart = Date(),
-                   const std::string &stationFile = std::string());
+                   std::string stationFile = std::string());
 
   int HMDF_EXPORT read();
-  int HMDF_EXPORT write(const std::string &filename);
+  static int HMDF_EXPORT write(const std::string &filename);
 
   size_t HMDF_EXPORT nStations() const;
 
@@ -105,10 +105,11 @@ class Hmdf {
   int readDFlowFM(const std::string &filename);
   int readImeds(const std::string &filename);
   int readgenericNetCDF(const std::string &filename);
-  size_t readAdcircStationFile(const std::string &filename,
-                               std::vector<double> &x, std::vector<double> &y);
-  void ncCheck(const int retcode);
-  int getAdcircVariableId(const int ncid, int &varid1, int &varid2);
+  static size_t readAdcircStationFile(const std::string &filename,
+                                      std::vector<double> &x,
+                                      std::vector<double> &y);
+  static void ncCheck(const int retcode);
+  static int getAdcircVariableId(const int ncid, int &varid1, int &varid2);
 
   std::string m_filename;
   Date m_coldstart;

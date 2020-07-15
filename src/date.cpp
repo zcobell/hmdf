@@ -31,7 +31,7 @@ struct s_date {
   date::year_month_day dd;
 
  public:
-  s_date(const std::chrono::system_clock::time_point &t)
+  explicit s_date(const std::chrono::system_clock::time_point &t)
       : dd(date::year_month_day(date::floor<date::days>(t))) {}
   int year() const { return int(dd.year()); }
   unsigned month() const { return unsigned(dd.month()); }
@@ -45,7 +45,7 @@ struct s_datetime {
   date::hh_mm_ss<std::chrono::system_clock::duration> tt;
 
  public:
-  s_datetime(const std::chrono::system_clock::time_point &t)
+  explicit s_datetime(const std::chrono::system_clock::time_point &t)
       : t(t),
         dd(date::year_month_day(date::floor<date::days>(t))),
         tt(date::make_time(t - date::sys_days(dd))) {}
@@ -170,7 +170,6 @@ void Date::set(int year, int month, int day, int hour, int minute, int second,
                      std::chrono::minutes(minute) +
                      std::chrono::seconds(second) +
                      std::chrono::milliseconds(millisecond);
-  return;
 }
 
 std::vector<int> Date::get() const {
@@ -201,7 +200,6 @@ void Date::set(const Date &v) { this->set(v.time_point()); }
 
 void Date::fromSeconds(long seconds) {
   this->m_datetime = date::sys_days(c_epoch()) + std::chrono::seconds(seconds);
-  return;
 }
 
 void Date::fromMSeconds(long long mseconds) {
@@ -224,7 +222,6 @@ int Date::year() const {
 void Date::setYear(int year) {
   s_datetime d(this->m_datetime);
   this->set(year, d.month(), d.day(), d.hour(), d.minute(), d.second());
-  return;
 }
 
 int Date::month() const {
@@ -235,7 +232,6 @@ int Date::month() const {
 void Date::setMonth(int month) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), month, d.day(), d.hour(), d.minute(), d.second());
-  return;
 }
 
 int Date::day() const {
@@ -246,7 +242,6 @@ int Date::day() const {
 void Date::setDay(int day) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), day, d.hour(), d.minute(), d.second());
-  return;
 }
 
 int Date::hour() const {
@@ -257,7 +252,6 @@ int Date::hour() const {
 void Date::setHour(int hour) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), hour, d.minute(), d.second());
-  return;
 }
 
 int Date::minute() const {
@@ -268,7 +262,6 @@ int Date::minute() const {
 void Date::setMinute(int minute) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), d.hour(), minute, d.second());
-  return;
 }
 
 int Date::second() const {
@@ -279,7 +272,6 @@ int Date::second() const {
 void Date::setSecond(int second) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), d.hour(), d.minute(), second);
-  return;
 }
 
 int Date::millisecond() const {
@@ -291,13 +283,11 @@ void Date::setMillisecond(int milliseconds) {
   s_datetime d(this->m_datetime);
   this->set(d.year(), d.month(), d.day(), d.hour(), d.minute(), d.second(),
             milliseconds);
-  return;
 }
 
 void Date::fromString(const std::string &datestr, const std::string &format) {
   std::stringstream ss(datestr);
   date::from_stream(ss, format.c_str(), this->m_datetime);
-  return;
 }
 
 std::string Date::toString(const std::string &format) const {

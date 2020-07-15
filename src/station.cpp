@@ -113,7 +113,9 @@ std::string Station::datum() const { return this->m_datum; }
 void Station::setDatum(const std::string &datum) { this->m_datum = datum; }
 
 size_t Station::dimension() const {
-  if (this->m_data.size() > 0) return this->m_data[0].dimension();
+  if (!this->m_data.empty()) {
+    return this->m_data[0].dimension();
+  }
   return 0;
 }
 
@@ -156,7 +158,10 @@ std::ostream &operator<<(std::ostream &os, const Station *s) {
   os << "         Length: " << s->size() << std::endl;
   os << "  Mean Timestep: " << s->meanDt() << std::endl;
 
-  std::string mx, mn, me, nl;
+  std::string mx;
+  std::string mn;
+  std::string me;
+  std::string nl;
   for (size_t i = 0; i < s->dimension(); ++i) {
     if (i > 0) {
       mx = boost::str(boost::format("%s, %f") % mx % s->max(i));
@@ -187,7 +192,6 @@ void Station::sanitize() {
   this->m_data.erase(std::unique(this->m_data.begin(), this->m_data.end(),
                                  Timepoint::dateEqual),
                      this->m_data.end());
-  return;
 }
 
 double Station::sum(size_t index) const {

@@ -162,7 +162,7 @@ class Date {
   void HMDF_EXPORT setHour(int hour);
 
   int HMDF_EXPORT minute() const;
-  void HMDF_EXPORT setMinute(int month);
+  void HMDF_EXPORT setMinute(int minute);
 
   int HMDF_EXPORT second() const;
   void HMDF_EXPORT setSecond(int second);

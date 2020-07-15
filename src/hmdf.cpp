@@ -26,6 +26,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "boost/algorithm/string/case_conv.hpp"
 #include "boost/algorithm/string/replace.hpp"
@@ -41,11 +42,10 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace phoenix = boost::phoenix;
 
-Hmdf::Hmdf(const std::string &filename, const Date &coldstart,
-           const std::string &stationFile)
-    : m_filename(filename),
+Hmdf::Hmdf(std::string filename, const Date &coldstart, std::string stationFile)
+    : m_filename(std::move(filename)),
       m_coldstart(coldstart),
-      m_stationFile(stationFile),
+      m_stationFile(std::move(stationFile)),
       m_success(false),
       m_null(true),
       m_dimension(0),
@@ -127,7 +127,7 @@ int Hmdf::resize(size_t n) {
 
 int Hmdf::read() {
   int ierr;
-  switch (this->getFiletype(this->m_filename)) {
+  switch (Hmdf::getFiletype(this->m_filename)) {
     case AdcircAscii:
       ierr = this->readAdcircAscii(this->m_filename, this->m_stationFile,
                                    this->m_coldstart);
@@ -155,14 +155,15 @@ int Hmdf::read() {
   return ierr;
 }
 
-int Hmdf::write(const std::string &filename) { return 0; }
+int Hmdf::write(const std::string & /*filename*/) { return 0; }
 
 Hmdf::FileType Hmdf::getFiletype(const std::string &filename) {
   std::string ext = Hmdf::getFileExtension(filename);
   boost::algorithm::to_lower(ext);
   if (ext == ".61" || ext == ".62" || ext == ".71" || ext == ".72") {
     return Hmdf::AdcircAscii;
-  } else if (ext == ".nc") {
+  }
+  if (ext == ".nc") {
     return Hmdf::AdcircNetCDF;
   } else if (ext == ".imeds") {
     return Hmdf::IMEDS;
@@ -188,7 +189,8 @@ size_t Hmdf::readAdcircStationFile(const std::string &filename,
   y.reserve(nsta);
   for (size_t i = 0; i < nsta; ++i) {
     std::getline(f, line);
-    double xx, yy;
+    double xx;
+    double yy;
     bool noerr =
         qi::phrase_parse(line.begin(), line.end(),
                          (qi::double_[phoenix::ref(xx) = qi::_1] >> "," >>
@@ -210,7 +212,8 @@ size_t Hmdf::readAdcircStationFile(const std::string &filename,
 int Hmdf::readAdcircAscii(const std::string &filename,
                           const std::string &stationFile,
                           const Date &coldstart) {
-  std::vector<double> x, y;
+  std::vector<double> x;
+  std::vector<double> y;
   size_t nsta = this->readAdcircStationFile(stationFile, x, y);
 
   std::fstream f(filename);
@@ -226,7 +229,10 @@ int Hmdf::readAdcircAscii(const std::string &filename,
   this->m_headerData.push_back(line);
 
   //...Read the metadata line
-  size_t nstep, nsta_file, dim, dit;
+  size_t nstep;
+  size_t nsta_file;
+  size_t dim;
+  size_t dit;
   double dt;
   std::getline(f, line);
   bool noerr = qi::phrase_parse(line.begin(), line.end(),
@@ -267,14 +273,18 @@ int Hmdf::readAdcircAscii(const std::string &filename,
     d.addSeconds(t);
     for (size_t j = 0; j < nsta; ++j) {
       std::getline(f, line);
-      double v1, v2, v3;
+      double v1;
+      double v2;
+      double v3;
       size_t idx;
       if (dim == 1) {
         noerr = qi::phrase_parse(line.begin(), line.end(),
                                  (qi::int_[phoenix::ref(idx) = qi::_1] >>
                                   qi::double_[phoenix::ref(v1) = qi::_1]),
                                  ascii::space);
-        if (v1 <= -9999) v1 = Timepoint::nullValue();
+        if (v1 <= -9999) {
+          v1 = Timepoint::nullValue();
+        }
         this->m_stations[j] << Timepoint(d, v1);
       } else if (dim == 2) {
         noerr = qi::phrase_parse(line.begin(), line.end(),
@@ -282,8 +292,12 @@ int Hmdf::readAdcircAscii(const std::string &filename,
                                   qi::double_[phoenix::ref(v1) = qi::_1] >>
                                   qi::double_[phoenix::ref(v2) = qi::_1]),
                                  ascii::space);
-        if (v1 <= -9999) v1 = Timepoint::nullValue();
-        if (v2 <= -9999) v2 = Timepoint::nullValue();
+        if (v1 <= -9999) {
+          v1 = Timepoint::nullValue();
+        }
+        if (v2 <= -9999) {
+          v2 = Timepoint::nullValue();
+        }
         this->m_stations[j] << Timepoint(d, v1, v2);
       } else if (dim == 3) {
         noerr = qi::phrase_parse(line.begin(), line.end(),
@@ -292,9 +306,15 @@ int Hmdf::readAdcircAscii(const std::string &filename,
                                   qi::double_[phoenix::ref(v2) = qi::_1] >>
                                   qi::double_[phoenix::ref(v3) = qi::_1]),
                                  ascii::space);
-        if (v1 <= -9999) v1 = Timepoint::nullValue();
-        if (v2 <= -9999) v2 = Timepoint::nullValue();
-        if (v3 <= -9999) v3 = Timepoint::nullValue();
+        if (v1 <= -9999) {
+          v1 = Timepoint::nullValue();
+        }
+        if (v2 <= -9999) {
+          v2 = Timepoint::nullValue();
+        }
+        if (v3 <= -9999) {
+          v3 = Timepoint::nullValue();
+        }
         this->m_stations[j] << Timepoint(d, v1, v2, v3);
       }
     }
@@ -306,7 +326,9 @@ int Hmdf::readAdcircAscii(const std::string &filename,
 }
 
 void Hmdf::ncCheck(const int retcode) {
-  if (retcode == NC_NOERR) return;
+  if (retcode == NC_NOERR) {
+    return;
+  }
   hmdf_throw_exception(nc_strerror(retcode));
 }
 
@@ -315,11 +337,14 @@ int Hmdf::getAdcircVariableId(const int ncid, int &varid1, int &varid2) {
                                             "windx"};
   for (auto &v : vlist) {
     int ierr = nc_inq_varid(ncid, v.c_str(), &varid1);
-    if (ierr != NC_NOERR) continue;
+    if (ierr != NC_NOERR) {
+      continue;
+    }
     if (v == "u-vel") {
       ierr = nc_inq_varid(ncid, "v-vel", &varid2);
       return 2;
-    } else if (v == "windx") {
+    }
+    if (v == "windx") {
       ierr = nc_inq_varid(ncid, "windy", &varid2);
       return 2;
     }
@@ -342,11 +367,15 @@ std::string Hmdf::getFilename() const { return m_filename; }
 
 void Hmdf::setFilename(const std::string &filename) { m_filename = filename; }
 
-int Hmdf::readAdcircNetCDF(const std::string &filename,
-                           const Date &coldstart) {
+int Hmdf::readAdcircNetCDF(const std::string &filename, const Date &coldstart) {
   int ncid;
-  int dimid_time, dimid_nsta, dimid_namelen;
-  int varid_time, varid_x, varid_y, varid_staname;
+  int dimid_time;
+  int dimid_nsta;
+  int dimid_namelen;
+  int varid_time;
+  int varid_x;
+  int varid_y;
+  int varid_staname;
   ncCheck(nc_open(filename.c_str(), NC_NOWRITE, &ncid));
   ncCheck(nc_inq_dimid(ncid, "time", &dimid_time));
   ncCheck(nc_inq_dimid(ncid, "station", &dimid_nsta));
@@ -385,7 +414,8 @@ int Hmdf::readAdcircNetCDF(const std::string &filename,
   }
 
   //...Get the varid's
-  int varid1, varid2;
+  int varid1;
+  int varid2;
   int nvar = this->getAdcircVariableId(ncid, varid1, varid2);
   if (nvar == 0) {
     hmdf_throw_exception("No valid variables found in ADCIRC netCDF file");
@@ -393,7 +423,7 @@ int Hmdf::readAdcircNetCDF(const std::string &filename,
   }
 
   for (size_t i = 0; i < nsta; ++i) {
-    this->m_stations.push_back(Station(i, x[i], y[i], nvar));
+    this->m_stations.emplace_back(i, x[i], y[i], nvar);
     this->m_stations.back().allocate(nsnap);
     this->m_stations.back().setName(n[i]);
   }
@@ -429,7 +459,6 @@ void Hmdf::splitString(std::string &data, std::vector<std::string> &fresult) {
   boost::trim_if(data, boost::is_any_of(" ,"));
   boost::algorithm::split(fresult, data, boost::is_any_of(" ,"),
                           boost::token_compress_on);
-  return;
 }
 
 std::string Hmdf::sanitizeString(const std::string &a) {
@@ -469,7 +498,9 @@ bool Hmdf::splitStringHmdfFormat(const std::string &data, int &year, int &month,
 
 int Hmdf::readImeds(const std::string &filename) {
   std::ifstream fid(filename.c_str());
-  if (fid.bad()) return 1;
+  if (fid.bad()) {
+    return 1;
+  }
 
   //...Read Header
   std::string templine;
@@ -495,13 +526,20 @@ int Hmdf::readImeds(const std::string &filename) {
 
     while (!fid.eof()) {
       std::getline(fid, templine);
-      int year, month, day, hour, minute, second;
+      int year;
+      int month;
+      int day;
+      int hour;
+      int minute;
+      int second;
       double value;
       bool status = Hmdf::splitStringHmdfFormat(templine, year, month, day,
                                                 hour, minute, second, value);
       if (status) {
         Date d(year, month, day, hour, minute, second);
-        if (value <= -9999) value = Timepoint::nullValue();
+        if (value <= -9999) {
+          value = Timepoint::nullValue();
+        }
         s << Timepoint(d, value);
       } else {
         break;

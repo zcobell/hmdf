@@ -36,7 +36,7 @@ class Timepoint {
                         const double v3);
 
   /// Generic vector constructor
-  HMDF_EXPORT Timepoint(const Date &d, const std::vector<double> &v);
+  HMDF_EXPORT Timepoint(const Date &d, std::vector<double> v);
 
   /// Templated constructor (c++ only) using variadic template
   template <typename... Double>

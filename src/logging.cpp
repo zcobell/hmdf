@@ -17,6 +17,7 @@
 // along with HMDF.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------*/
 #include "logging.h"
+
 #include <stdexcept>
 #include <string>
 
@@ -49,7 +50,7 @@ void Logging::throwError(const std::string &s, const char *file, int line) {
  */
 void Logging::logError(const std::string &s, const std::string &heading) {
   std::string header = c_errorHeading;
-  if (heading != std::string()) {
+  if (!heading.empty()) {
     header = heading;
   }
   Logging::printErrorMessage(heading, s);
@@ -61,7 +62,7 @@ void Logging::logError(const std::string &s, const std::string &heading) {
  */
 void Logging::warning(const std::string &s, const std::string &heading) {
   std::string header = c_warningHeading;
-  if (heading != std::string()) {
+  if (!heading.empty()) {
     header = heading;
   }
   Logging::printMessage(header, s);
@@ -73,7 +74,7 @@ void Logging::warning(const std::string &s, const std::string &heading) {
  */
 void Logging::log(const std::string &s, const std::string &heading) {
   std::string header = c_logHeading;
-  if (heading != std::string()) {
+  if (!heading.empty()) {
     header = heading;
   }
   Logging::printMessage(header, s);

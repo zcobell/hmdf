@@ -20,6 +20,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <utility>
 
 Timepoint::Timepoint() : m_date(0), m_v{0} {}
 
@@ -32,8 +33,8 @@ Timepoint::Timepoint(const Date &d, const double v1, const double v2,
                      const double v3)
     : m_date(d), m_v{v1, v2, v3} {};
 
-Timepoint::Timepoint(const Date &d, const std::vector<double> &v)
-    : m_date(d), m_v(v) {}
+Timepoint::Timepoint(const Date &d, std::vector<double> v)
+    : m_date(d), m_v(std::move(v)) {}
 
 Date Timepoint::date() const { return this->m_date; }
 
@@ -144,8 +145,8 @@ Timepoint::const_iterator Timepoint::cend() const noexcept {
 
 std::ostream &operator<<(std::ostream &os, const Timepoint &t) {
   os << t.date().toString() << " ";
-  for (size_t i = 0; i < t.m_v.size(); ++i) {
-    os << t.m_v[i] << " ";
+  for (double i : t.m_v) {
+    os << i << " ";
   }
   return os;
 }
@@ -165,7 +166,8 @@ double Timepoint::direction() {
   a = a * 180.0 / M_PI;
   if (a >= 360.0) {
     return a - 360.0;
-  } else if (a < 0.0) {
+  }
+  if (a < 0.0) {
     return a + 360.0;
   } else {
     return a;
