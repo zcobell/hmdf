@@ -24,6 +24,8 @@
 #include "hmdf_global.h"
 #include "station.h"
 
+class NefisSeriesMetadata;
+
 class Hmdf {
  public:
   HMDF_EXPORT Hmdf(std::string filename = std::string(),
@@ -70,14 +72,14 @@ class Hmdf {
   const_iterator HMDF_EXPORT cend() const noexcept;
 #endif
 
-  std::string getFilename() const;
-  void setFilename(const std::string &filename);
+  std::string HMDF_EXPORT getFilename() const;
+  void HMDF_EXPORT setFilename(const std::string &filename);
 
-  Date getColdstart() const;
-  void setColdstart(const Date &coldstart);
+  Date HMDF_EXPORT getColdstart() const;
+  void HMDF_EXPORT setColdstart(const Date &coldstart);
 
-  std::string getStationFile() const;
-  void setStationFile(const std::string &stationFile);
+  std::string HMDF_EXPORT getStationFile() const;
+  void HMDF_EXPORT setStationFile(const std::string &stationFile);
 
  private:
   enum FileType {
@@ -92,24 +94,27 @@ class Hmdf {
 
   static FileType getFiletype(const std::string &filename);
   static std::string getFileExtension(const std::string &filename);
+  std::string getFileBasename(const std::string &filename);
   static void splitString(std::string &data, std::vector<std::string> &fresult);
   static std::string sanitizeString(const std::string &a);
   static bool splitStringHmdfFormat(const std::string &data, int &year,
                                     int &month, int &day, int &hour,
                                     int &minute, int &second, double &value);
 
-  int readAdcircAscii(const std::string &filename,
-                      const std::string &stationFile, const Date &coldstart);
-  int readAdcircNetCDF(const std::string &filename, const Date &coldstart);
-  int readDelft3D(const std::string &filename);
-  int readDFlowFM(const std::string &filename);
-  int readImeds(const std::string &filename);
-  int readgenericNetCDF(const std::string &filename);
+  int readAdcircAscii();
+  int readAdcircNetCDF();
+  int readDelft3D();
+  int readDFlowFM();
+  int readImeds();
+  int readgenericNetCDF();
   static size_t readAdcircStationFile(const std::string &filename,
                                       std::vector<double> &x,
                                       std::vector<double> &y);
   static void ncCheck(const int retcode);
+  static void nefCheck(const int retcode);
   static int getAdcircVariableId(const int ncid, int &varid1, int &varid2);
+
+  void getNefisDatasets(const char *series, std::vector<NefisSeriesMetadata> &metadata);
 
   std::string m_filename;
   Date m_coldstart;
@@ -120,6 +125,7 @@ class Hmdf {
   int m_epsg;
 
   std::vector<Station> m_stations;
+
 };
 
 #endif  // HMDF_H

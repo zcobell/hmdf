@@ -37,6 +37,19 @@
 #include "boost/spirit/include/qi.hpp"
 #include "date.h"
 #include "logging.h"
+#include "nefis_defines.h"
+#include "nefisseriesmetadata.h"
+
+extern "C" {
+#include "btps.h"
+#include "nefis.h"
+}
+
+#define MAX_NEFIS_CEL_DIM 100
+#define MAX_NEFIS_DESC 64
+#define MAX_NEFIS_DIM 5
+#define MAX_NEFIS_NAME 16
+#define MAX_NEFIS_TYPE 8
 
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
@@ -97,6 +110,14 @@ std::string Hmdf::getFileExtension(const std::string &filename) {
   return std::string();
 }
 
+std::string Hmdf::getFileBasename(const std::string &filename) {
+  size_t pos = filename.rfind(".");
+  if (pos != std::string::npos) {
+    return std::string(filename.begin(), filename.begin() + pos);
+  }
+  return std::string();
+}
+
 Station *Hmdf::station(size_t index) {
   assert(index < this->m_stations.size());
   return &this->m_stations[index];
@@ -127,25 +148,30 @@ int Hmdf::resize(size_t n) {
 
 int Hmdf::read() {
   int ierr;
+
+  std::fstream fl(this->m_filename);
+  if (fl.bad()) {
+    hmdf_throw_exception("The file " + this->m_filename + " does not exist.");
+  }
+
   switch (Hmdf::getFiletype(this->m_filename)) {
     case AdcircAscii:
-      ierr = this->readAdcircAscii(this->m_filename, this->m_stationFile,
-                                   this->m_coldstart);
+      ierr = this->readAdcircAscii();
       break;
     case AdcircNetCDF:
-      ierr = this->readAdcircNetCDF(this->m_filename, this->m_coldstart);
+      ierr = this->readAdcircNetCDF();
       break;
     case Delft3D:
-      ierr = this->readDelft3D(this->m_filename);
+      ierr = this->readDelft3D();
       break;
     case DFlowFM:
-      ierr = this->readDFlowFM(this->m_filename);
+      ierr = this->readDFlowFM();
       break;
     case IMEDS:
-      ierr = this->readImeds(this->m_filename);
+      ierr = this->readImeds();
       break;
     case NETCDF:
-      ierr = this->readgenericNetCDF(this->m_filename);
+      ierr = this->readgenericNetCDF();
       break;
     default:
       ierr = 1;
@@ -209,14 +235,12 @@ size_t Hmdf::readAdcircStationFile(const std::string &filename,
   return nsta;
 }
 
-int Hmdf::readAdcircAscii(const std::string &filename,
-                          const std::string &stationFile,
-                          const Date &coldstart) {
+int Hmdf::readAdcircAscii() {
   std::vector<double> x;
   std::vector<double> y;
-  size_t nsta = this->readAdcircStationFile(stationFile, x, y);
+  size_t nsta = this->readAdcircStationFile(this->m_stationFile, x, y);
 
-  std::fstream f(filename);
+  std::fstream f(this->m_filename);
   if (!f.good()) {
     hmdf_throw_exception("Could not open ADCIRC data file");
     return 1;
@@ -269,7 +293,7 @@ int Hmdf::readAdcircAscii(const std::string &filename,
                              (qi::double_[phoenix::ref(t) = qi::_1] >>
                               qi::int_[phoenix::ref(it) = qi::_1]),
                              ascii::space);
-    Date d = coldstart;
+    Date d(this->m_coldstart);
     d.addSeconds(t);
     for (size_t j = 0; j < nsta; ++j) {
       std::getline(f, line);
@@ -332,6 +356,13 @@ void Hmdf::ncCheck(const int retcode) {
   hmdf_throw_exception(nc_strerror(retcode));
 }
 
+void Hmdf::nefCheck(const int retcode) {
+  if (retcode == 0) {
+    return;
+  }
+  hmdf_throw_exception("Internal error in NEFIS library");
+}
+
 int Hmdf::getAdcircVariableId(const int ncid, int &varid1, int &varid2) {
   const std::array<std::string, 4> vlist = {"zeta", "u-vel", "pressure",
                                             "windx"};
@@ -367,7 +398,7 @@ std::string Hmdf::getFilename() const { return m_filename; }
 
 void Hmdf::setFilename(const std::string &filename) { m_filename = filename; }
 
-int Hmdf::readAdcircNetCDF(const std::string &filename, const Date &coldstart) {
+int Hmdf::readAdcircNetCDF() {
   int ncid;
   int dimid_time;
   int dimid_nsta;
@@ -376,7 +407,7 @@ int Hmdf::readAdcircNetCDF(const std::string &filename, const Date &coldstart) {
   int varid_x;
   int varid_y;
   int varid_staname;
-  ncCheck(nc_open(filename.c_str(), NC_NOWRITE, &ncid));
+  ncCheck(nc_open(this->m_filename.c_str(), NC_NOWRITE, &ncid));
   ncCheck(nc_inq_dimid(ncid, "time", &dimid_time));
   ncCheck(nc_inq_dimid(ncid, "station", &dimid_nsta));
   ncCheck(nc_inq_dimid(ncid, "namelen", &dimid_namelen));
@@ -391,7 +422,7 @@ int Hmdf::readAdcircNetCDF(const std::string &filename, const Date &coldstart) {
   ncCheck(nc_get_var(ncid, varid_time, t.get()));
   std::vector<Date> date(nsnap);
   for (size_t i = 0; i < nsnap; ++i) {
-    date[i] = coldstart + t[i];
+    date[i] = this->m_coldstart + t[i];
   }
   t.reset();
 
@@ -496,8 +527,8 @@ bool Hmdf::splitStringHmdfFormat(const std::string &data, int &year, int &month,
   return r;
 }
 
-int Hmdf::readImeds(const std::string &filename) {
-  std::ifstream fid(filename.c_str());
+int Hmdf::readImeds() {
+  std::ifstream fid(this->m_filename.c_str());
   if (fid.bad()) {
     return 1;
   }
@@ -550,8 +581,70 @@ int Hmdf::readImeds(const std::string &filename) {
   return 0;
 }
 
-int Hmdf::readgenericNetCDF(const std::string &filename) {}
+void Hmdf::getNefisDatasets(const char *series,
+                            std::vector<NefisSeriesMetadata> &metadata) {
+  const std::string basename = this->getFileBasename(this->m_filename);
+  BText datfile = strdup(std::string(basename + ".def").c_str());
+  BText deffile = strdup(std::string(basename + ".dat").c_str());
 
-int Hmdf::readDelft3D(const std::string &filename) {}
+  BInt4 fid;
+  this->nefCheck(Crenef(&fid, deffile, datfile, 'M', 'r'));
 
-int Hmdf::readDFlowFM(const std::string &filename) {}
+  BInt4 grpdim = MAX_NEFIS_DIM;
+  BInt4 celdim = MAX_NEFIS_CEL_DIM;
+  BInt4 nsteps = 0;
+  std::unique_ptr<BInt4> grpdms(new BInt4[MAX_NEFIS_DIM]);
+  std::unique_ptr<BInt4> grpord(new BInt4[MAX_NEFIS_DIM]);
+  std::unique_ptr<BInt4> elmdimensions(new BInt4[MAX_NEFIS_DIM]);
+  std::unique_ptr<BChar> celname(new BChar[MAX_NEFIS_NAME + 1]);
+  std::unique_ptr<BChar> type(new BChar[MAX_NEFIS_TYPE + 1]);
+  std::unique_ptr<BChar> quantity(new BChar[MAX_NEFIS_NAME + 1]);
+  std::unique_ptr<BChar> units(new BChar[MAX_NEFIS_NAME + 1]);
+  std::unique_ptr<BChar> description(new BChar[MAX_NEFIS_DESC + 1]);
+  BChar elmnames[MAX_NEFIS_CEL_DIM][MAX_NEFIS_NAME + 1];
+  BChar *bseries;
+  bseries = strdup(series);
+
+  int ierr = Inqmxi(&fid, bseries, &nsteps);
+  if (ierr != 0) {
+    Clsnef(&fid);
+    return;
+  }
+
+  this->nefCheck(Inqgrp(&fid, bseries, celname.get(), &grpdim, grpdms.get(),
+                        grpord.get()));
+  this->nefCheck(Inqcel(&fid, celname.get(), &celdim, elmnames));
+
+  for (int i = 0; i < celdim; ++i) {
+    NefisSeriesMetadata se;
+    se.setName(Hmdf::sanitizeString(elmnames[i]));
+    BInt4 ndim = MAX_NEFIS_DIM;
+    BInt4 nbyte = 0;
+    this->nefCheck(Inqelm(&fid, elmnames[i], type.get(), &nbyte, quantity.get(),
+                          units.get(), description.get(), &ndim,
+                          elmdimensions.get()));
+    se.setDescription(Hmdf::sanitizeString(description.get()));
+    se.setType(Hmdf::sanitizeString(type.get()));
+    se.setUnits(Hmdf::sanitizeString(units.get()));
+    se.setQuantity(Hmdf::sanitizeString(quantity.get()));
+    se.dim()->reserve(ndim);
+    for (int j = 0; j < ndim; ++j) {
+      se.dim()->push_back(elmdimensions.get()[j]);
+    }
+    std::cout << se;
+    metadata.push_back(se);
+  }
+
+  ierr = Clsnef(&fid);
+  return;
+}
+
+int Hmdf::readgenericNetCDF() {}
+
+int Hmdf::readDelft3D() {
+  std::vector<NefisSeriesMetadata> meta;
+  this->getNefisDatasets("his-series", meta);
+  this->getNefisDatasets("his-wave-series", meta);
+}
+
+int Hmdf::readDFlowFM() {}

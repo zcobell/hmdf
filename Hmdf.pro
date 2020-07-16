@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    src/nefisseriesmetadata.cpp \
     src/date.cpp \
     src/hmdf.cpp \
     src/logging.cpp \
@@ -29,12 +30,14 @@ HEADERS += \
     include/date.h \
     include/hmdf_global.h \
     include/logging.h \
+    include/nefisseriesmetadata.h \
     include/station.h \
     include/timepoint.h
 
 NETCDFHOME=/usr/local/Cellar/netcdf/4.7.4
 INCLUDEPATH += include
 INCLUDEPATH += thirdparty/boost_1_73_0 thirdparty/ezproj/src
+INCLUDEPATH += thirdparty/boost_1_73_0 thirdparty/nefis/include
 INCLUDEPATH += thirdparty
 INCLUDEPATH += $$NETCDFHOME/include
 

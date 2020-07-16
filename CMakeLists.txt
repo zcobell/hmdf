@@ -26,20 +26,25 @@ include(CMakePackageConfigHelpers)
 include(cmake/StandardProjectSettings.cmake)
 include(cmake/PreventInSourceBuilds.cmake)
 
-add_library( project_options INTERFACE )
-target_compile_features( project_options INTERFACE cxx_std_11 )
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_11)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-  option(ENABLE_BUILD_WITH_TIME_TRACE "Enable -ftime-trace to generate time tracing .json files on clang" OFF)
+  option(ENABLE_BUILD_WITH_TIME_TRACE
+         "Enable -ftime-trace to generate time tracing .json files on clang"
+         OFF)
   if(ENABLE_BUILD_WITH_TIME_TRACE)
     add_compile_definitions(project_options INTERFACE -ftime-trace)
   endif()
 endif()
 
-add_library( project_warnings INTERFACE )
+add_library(project_warnings INTERFACE)
 include(cmake/Cache.cmake)
 include(cmake/CompilerWarnings.cmake)
-set_project_warnings(project_warnings)
+option(HMDF_PROJECT_WARNINGS "Enable compile time warnings as errors" OFF)
+if(HMDF_PROJECT_WARNINGS)
+  set_project_warnings(project_warnings)
+endif()
 include(cmake/Sanitizers.cmake)
 enable_sanitizers(project_options)
 include(cmake/StaticAnalyzers.cmake)
@@ -263,9 +268,10 @@ endif(WIN32)
 # ##############################################################################
 
 # ##############################################################################
-# Proj Library
+# External Library
 # ##############################################################################
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj EXCLUDE_FROM_ALL)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nefis EXCLUDE_FROM_ALL)
 # ##############################################################################
 
 # ##############################################################################
@@ -276,7 +282,8 @@ set(HMDF_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/station.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/timepoint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/date.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/date.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nefisseriesmetadata.cpp)
 
 add_library(hmdf SHARED ${HMDF_SOURCES})
 
@@ -285,12 +292,13 @@ set(HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/hmdf.h)
 target_include_directories(
   hmdf
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+          ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nefis/include
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
           ${Boost_INCLUDE_DIRS}
           ${NETCDF_INCLUDE_DIR})
 
-add_dependencies(hmdf ezproj)
+add_dependencies(hmdf ezproj nefis)
 
 target_compile_definitions(hmdf PRIVATE GIT_VERSION="${GIT_VERSION}")
 target_compile_definitions(hmdf PRIVATE HMDF_LIBRARY)
@@ -324,7 +332,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmdfConfigVersion.cmake
 set_target_properties(hmdf PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)
 set_target_properties(hmdf PROPERTIES CMAKE_CXX_INLINES_HIDDEN YES)
 
-target_link_libraries(hmdf ezproj)
+target_link_libraries(hmdf ezproj nefis project_warnings project_options)
 
 if(WIN32)
   link_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/netcdf/libs_vc64)
@@ -464,26 +472,25 @@ endif(
 if(UNIX OR CYGWIN)
   if(HMDF_BUILD_TESTS)
     # ...C++ Testing
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/cxx_testcases)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cxx)
 
-    set(TEST_LIST "")
+    set(TEST_LIST "cxx_readAdcirc.cpp" "cxx_readAdcircNetcdf.cpp"
+                  "cxx_readNefis.cpp")
 
     foreach(TESTFILE ${TEST_LIST})
       get_filename_component(TESTNAME ${TESTFILE} NAME_WE)
-      add_executable(${TESTNAME}
-                     ${CMAKE_SOURCE_DIR}/testing/cxx_tests/${TESTFILE})
-      add_dependencies(${TESTNAME} adcircmodules)
-      target_include_directories(
-        ${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
-                            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src)
-      target_link_libraries(${TESTNAME} adcircmodules)
+      add_executable(${TESTNAME} ${CMAKE_SOURCE_DIR}/testing/cxx/${TESTFILE})
+      add_dependencies(${TESTNAME} hmdf)
+      target_include_directories(${TESTNAME}
+                                 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+      target_link_libraries(${TESTNAME} hmdf ${NETCDF_LIBS})
       set_target_properties(
         ${TESTNAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-                               ${CMAKE_CURRENT_BINARY_DIR}/cxx_testcases)
+                               ${CMAKE_CURRENT_BINARY_DIR}/cxx)
 
       add_test(
         NAME TEST_${TESTNAME}
-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/cxx_testcases/${TESTNAME}
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/cxx/${TESTNAME}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/testing)
       if(CYGWIN)
         set_tests_properties(
@@ -500,20 +507,23 @@ if(UNIX OR CYGWIN)
 
     # ...Python Test
     if(SWIG_FOUND)
-      set(PYTHON_TESTNAME TEST_python3_PyHmdf)
-      add_test(
-        NAME ${PYTHON_TESTNAME}
-        COMMAND ${PYTHON_EXECUTABLE}
-                ${CMAKE_SOURCE_DIR}/testing/python/adcirc_read.py
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-      set_property(
-        TEST ${PYTHON_TESTNAME}
-        PROPERTY
-          ENVIRONMENT
-          "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}")
-      set_property(
-        TEST ${PYTHON_TESTNAME} APPEND
-        PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}")
+      option(HMDF_PYTHON_TESTING "Run python3 tests" OFF)
+      if(HMDF_PYTHON_TESTING)
+        set(PYTHON_TESTNAME TEST_python3_PyHmdf)
+        add_test(
+          NAME ${PYTHON_TESTNAME}
+          COMMAND ${PYTHON_EXECUTABLE}
+                  ${CMAKE_SOURCE_DIR}/testing/python/adcirc_read.py
+          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        set_property(
+          TEST ${PYTHON_TESTNAME}
+          PROPERTY
+            ENVIRONMENT
+            "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}")
+        set_property(
+          TEST ${PYTHON_TESTNAME} APPEND
+          PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}")
+      endif()
     endif(SWIG_FOUND)
   endif(HMDF_BUILD_TESTS)
 endif(UNIX OR CYGWIN)
