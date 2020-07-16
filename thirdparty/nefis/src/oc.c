@@ -1306,7 +1306,7 @@ BInt4 open_nefis_file( BText   file_name  ,
         }
         else
         {
-            fds   = FILE_OPEN( file_name, acType );
+            fds   = FILE_OPEN( file_name, acType, FILE_READ_ONLY );
         }
     }
     if ( fds == -1 )

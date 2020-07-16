@@ -631,7 +631,6 @@ void Hmdf::getNefisDatasets(const char *series,
     for (int j = 0; j < ndim; ++j) {
       se.dim()->push_back(elmdimensions.get()[j]);
     }
-    std::cout << se;
     metadata.push_back(se);
   }
 
