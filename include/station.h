@@ -69,6 +69,12 @@ class Station {
   HmdfString HMDF_EXPORT datum() const;
   void HMDF_EXPORT setDatum(const HmdfString &datum);
 
+  HmdfString HMDF_EXPORT units() const;
+  void HMDF_EXPORT setUnits(const HmdfString &units);
+
+  HmdfString HMDF_EXPORT timezone() const;
+  void HMDF_EXPORT setTimezone(const HmdfString &timezone);
+
   size_t HMDF_EXPORT dimension() const;
 
   size_t HMDF_EXPORT size() const;
@@ -100,10 +106,12 @@ class Station {
   friend std::ostream HMDF_EXPORT &operator<<(std::ostream &os,
                                               const Station *s);
 
- private:
+private:
   HmdfVector<Timepoint> m_data;
   HmdfString m_name;
   HmdfString m_datum;
+  HmdfString m_units;
+  HmdfString m_timezone;
   size_t m_id;
   double m_x;
   double m_y;

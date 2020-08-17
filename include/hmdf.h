@@ -101,19 +101,21 @@ class Hmdf {
   static bool splitStringHmdfFormat(const HmdfString &data, int &year,
                                     int &month, int &day, int &hour,
                                     int &minute, int &second, double &value);
-
+  static FileType checkNetcdfType(const HmdfString &filename);
+  static HmdfString checkTextAttLenAndReturn(const int ncid, const int varid,
+                                  const std::string &att);
   int readAdcircAscii();
   int readAdcircNetCDF();
   int readNefisHeader();
   int readDflowFmHeader();
-  int readDflowFmValue(const HmdfString &var);
+  int readDflowFmValue(const HmdfString &var, size_t layer = 0);
   int readImeds();
-  int readgenericNetCDF();
+  int readGenericNetcdf();
   static size_t readAdcircStationFile(const HmdfString &filename,
                                       HmdfVector<double> &x,
                                       HmdfVector<double> &y);
-  static void ncCheck(const int retcode);
-  static void nefCheck(const int retcode);
+  static void ncCheck(const int retcode, const int fid = -1);
+  static void nefCheck(const int retcode, int fid = -1);
   static int getAdcircVariableId(const int ncid, int &varid1, int &varid2);
 
   void getNefisDatasets(const char *series,
@@ -136,6 +138,7 @@ class Hmdf {
   int m_epsg;
 
   HmdfVector<Station> m_stations;
+  Date string2date(const std::string &str);
 };
 
 #endif  // HMDF_H

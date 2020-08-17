@@ -29,6 +29,8 @@
 Station::Station(const unsigned char dimension)
     : m_name("noname"),
       m_datum("none"),
+      m_units("none"),
+      m_timezone("none"),
       m_id(0),
       m_x(0.0),
       m_y(0.0),
@@ -42,6 +44,8 @@ Station::Station(const size_t id, const double x, const double y,
                  const unsigned char dimension, const unsigned int epsg)
     : m_name("noname"),
       m_datum("none"),
+      m_units("none"),
+      m_timezone("none"),
       m_id(id),
       m_x(x),
       m_y(y),
@@ -79,6 +83,14 @@ Timepoint *Station::operator[](const size_t index) {
 
 void Station::push_back(const Timepoint &p) { this->m_data.push_back(p); }
 void Station::operator<<(const Timepoint &p) { this->push_back(p); }
+
+HmdfString Station::timezone() const { return m_timezone; }
+
+void Station::setTimezone(const HmdfString &timezone) { m_timezone = timezone; }
+
+HmdfString Station::units() const { return m_units; }
+
+void Station::setUnits(const HmdfString &units) { m_units = units; }
 void Station::operator<<(const HmdfVector<Timepoint> &p) {
   this->m_data.insert(this->m_data.end(), p.begin(), p.end());
 }
@@ -155,6 +167,8 @@ std::ostream &operator<<(std::ostream &os, const Station *s) {
     os << "     Projection: " << s->epsg() << std::endl;
   }
   os << "          Datum: " << s->datum() << std::endl;
+  os << "          Units: " << s->units() << std::endl;
+  os << "       Timezone: " << s->timezone() << std::endl;
   os << "      Dimension: " << s->dimension() << std::endl;
   os << "         Length: " << s->size() << std::endl;
   os << "  Mean Timestep: " << s->meanDt() << std::endl;
