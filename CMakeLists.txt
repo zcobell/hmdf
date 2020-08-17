@@ -45,9 +45,9 @@ option(HMDF_PROJECT_WARNINGS "Enable compile time warnings as errors" OFF)
 if(HMDF_PROJECT_WARNINGS)
   set_project_warnings(project_warnings)
 endif()
-include(cmake/Sanitizers.cmake)
-enable_sanitizers(project_options)
-include(cmake/StaticAnalyzers.cmake)
+#include(cmake/Sanitizers.cmake)
+#enable_sanitizers(project_options)
+#include(cmake/StaticAnalyzers.cmake)
 # ##############################################################################
 
 # ##############################################################################
@@ -63,7 +63,7 @@ endif(UNIX OR CYGWIN)
 # ##############################################################################
 # OPTION(COVERAGE "Export Code Coverage report from tests" OFF)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-if(COVERAGE)
+if(HMDF_COVERAGE)
   if(CMAKE_COMPILER_IS_GNUCXX)
     include(CodeCoverage)
     setup_target_for_coverage(hmdf_coverage tests coverage)
@@ -71,7 +71,7 @@ if(COVERAGE)
         "${CMAKE_CXX_FLAGS} -Wall -pedantic -pthread -g -O0 -fprofile-arcs -ftest-coverage"
     )
   endif(CMAKE_COMPILER_IS_GNUCXX)
-endif(COVERAGE)
+endif(HMDF_COVERAGE)
 # ##############################################################################
 
 # ##############################################################################
