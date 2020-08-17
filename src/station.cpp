@@ -26,7 +26,7 @@
 #include "boost/format.hpp"
 #include "ezproj.h"
 
-Station::Station(size_t dimension)
+Station::Station(const unsigned char dimension)
     : m_name("noname"),
       m_datum("none"),
       m_id(0),
@@ -38,7 +38,8 @@ Station::Station(size_t dimension)
       m_epsg_original(m_epsg),
       m_dimension(dimension) {}
 
-Station::Station(size_t id, double x, double y, size_t dimension, int epsg)
+Station::Station(const size_t id, const double x, const double y,
+                 const unsigned char dimension, const unsigned int epsg)
     : m_name("noname"),
       m_datum("none"),
       m_id(id),
@@ -78,7 +79,7 @@ Timepoint *Station::operator[](const size_t index) {
 
 void Station::push_back(const Timepoint &p) { this->m_data.push_back(p); }
 void Station::operator<<(const Timepoint &p) { this->push_back(p); }
-void Station::operator<<(const std::vector<Timepoint> &p) {
+void Station::operator<<(const HmdfVector<Timepoint> &p) {
   this->m_data.insert(this->m_data.end(), p.begin(), p.end());
 }
 
@@ -103,14 +104,14 @@ int Station::reproject(int epsg) {
 
 void Station::allocate(size_t n) { this->m_data.reserve(n); }
 
-std::string Station::name() const { return this->m_name; }
-void Station::setName(const std::string &name) { this->m_name = name; }
+HmdfString Station::name() const { return this->m_name; }
+void Station::setName(const HmdfString &name) { this->m_name = name; }
 
 size_t Station::id() const { return this->m_id; }
 void Station::setId(const size_t &id) { this->m_id = id; }
 
-std::string Station::datum() const { return this->m_datum; }
-void Station::setDatum(const std::string &datum) { this->m_datum = datum; }
+HmdfString Station::datum() const { return this->m_datum; }
+void Station::setDatum(const HmdfString &datum) { this->m_datum = datum; }
 
 size_t Station::dimension() const {
   if (!this->m_data.empty()) {
@@ -158,30 +159,37 @@ std::ostream &operator<<(std::ostream &os, const Station *s) {
   os << "         Length: " << s->size() << std::endl;
   os << "  Mean Timestep: " << s->meanDt() << std::endl;
 
-  std::string mx;
-  std::string mn;
-  std::string me;
-  std::string nl;
-  for (size_t i = 0; i < s->dimension(); ++i) {
-    if (i > 0) {
-      mx = boost::str(boost::format("%s, %f") % mx % s->max(i));
-      mn = boost::str(boost::format("%s, %f") % mn % s->min(i));
-      me = boost::str(boost::format("%s, %f") % me % s->mean(i));
-      nl = boost::str(boost::format("%s, %d") % nl %
-                      (s->size() - s->nNotNull(i)));
-    } else {
-      mx = boost::str(boost::format("%f") % s->max(0));
-      mn = boost::str(boost::format("%f") % s->min(0));
-      me = boost::str(boost::format("%f") % s->mean(0));
-      nl = boost::str(boost::format("%d") % (s->size() - s->nNotNull(0)));
+  HmdfString mx("empty");
+  HmdfString mn("empty");
+  HmdfString me("empty");
+  HmdfString nl("empty");
+  HmdfString dateStart("empty");
+  HmdfString dateEnd("empty");
+
+  if (s->m_data.size() > 0) {
+    dateStart = s->m_data.front().date().toString();
+    dateEnd = s->m_data.back().date().toString();
+    for (size_t i = 0; i < s->dimension(); ++i) {
+      if (i > 0) {
+        mx = boost::str(boost::format("%s, %f") % mx % s->max(i));
+        mn = boost::str(boost::format("%s, %f") % mn % s->min(i));
+        me = boost::str(boost::format("%s, %f") % me % s->mean(i));
+        nl = boost::str(boost::format("%s, %d") % nl %
+                        (s->size() - s->nNotNull(i)));
+      } else {
+        mx = boost::str(boost::format("%f") % s->max(0));
+        mn = boost::str(boost::format("%f") % s->min(0));
+        me = boost::str(boost::format("%f") % s->mean(0));
+        nl = boost::str(boost::format("%d") % (s->size() - s->nNotNull(0)));
+      }
     }
   }
   os << "            Min: " << mn << std::endl;
   os << "            Max: " << mx << std::endl;
   os << "           Mean: " << me << std::endl;
   os << "          nNull: " << nl << std::endl;
-  os << "          Begin: " << s->m_data.front().date().toString() << std::endl;
-  os << "            End: " << s->m_data.back().date().toString() << std::endl;
+  os << "          Begin: " << dateStart << std::endl;
+  os << "            End: " << dateEnd << std::endl;
   return os;
 }
 
@@ -219,7 +227,7 @@ double Station::mean(size_t index) const {
 }
 
 double Station::median(size_t index) const {
-  std::vector<double> v;
+  HmdfVector<double> v;
   v.reserve(this->nNotNull(index));
   for (auto &s : this->m_data) {
     if (s[index] != Timepoint::nullValue()) {

@@ -18,27 +18,26 @@
 // You should have received a copy of the GNU General Public License
 // along with HMDF.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------*/
-#include <string>
-#include <vector>
-
 #include "hmdf_global.h"
+#include "nefisseriesmetadata.h"
 #include "station.h"
-
-class NefisSeriesMetadata;
+#include "types.h"
 
 class Hmdf {
  public:
-  HMDF_EXPORT Hmdf(std::string filename = std::string(),
+  HMDF_EXPORT Hmdf(HmdfString filename = HmdfString(),
                    const Date &coldstart = Date(),
-                   std::string stationFile = std::string());
+                   HmdfString stationFile = HmdfString());
 
   int HMDF_EXPORT read();
-  static int HMDF_EXPORT write(const std::string &filename);
+  static int HMDF_EXPORT write(const HmdfString &filename);
+
+  int HMDF_EXPORT readNefisValue(const HmdfString &var, size_t layer = 0);
 
   size_t HMDF_EXPORT nStations() const;
 
-  std::vector<std::string> HMDF_EXPORT headerData() const;
-  void HMDF_EXPORT setHeaderData(const std::vector<std::string> &headerData);
+  HmdfVector<HmdfString> HMDF_EXPORT headerData() const;
+  void HMDF_EXPORT setHeaderData(const HmdfVector<HmdfString> &headerData);
 
   bool HMDF_EXPORT success() const;
 
@@ -54,17 +53,19 @@ class Hmdf {
 
   int HMDF_EXPORT reproject(int epsg);
 
+  void HMDF_EXPORT setEpsg(int epsg);
+
   int HMDF_EXPORT resize(size_t n);
 
   void HMDF_EXPORT operator<<(const Station &s);
 
-  void HMDF_EXPORT operator<<(const std::vector<Station> &s);
+  void HMDF_EXPORT operator<<(const HmdfVector<Station> &s);
 
   void HMDF_EXPORT sanitize();
 
 #ifndef SWIG
-  typedef typename std::vector<Station>::iterator iterator;
-  typedef typename std::vector<Station>::const_iterator const_iterator;
+  typedef typename HmdfVector<Station>::iterator iterator;
+  typedef typename HmdfVector<Station>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
   const_iterator HMDF_EXPORT cbegin() const noexcept;
@@ -72,14 +73,14 @@ class Hmdf {
   const_iterator HMDF_EXPORT cend() const noexcept;
 #endif
 
-  std::string HMDF_EXPORT getFilename() const;
-  void HMDF_EXPORT setFilename(const std::string &filename);
+  HmdfString HMDF_EXPORT getFilename() const;
+  void HMDF_EXPORT setFilename(const HmdfString &filename);
 
   Date HMDF_EXPORT getColdstart() const;
   void HMDF_EXPORT setColdstart(const Date &coldstart);
 
-  std::string HMDF_EXPORT getStationFile() const;
-  void HMDF_EXPORT setStationFile(const std::string &stationFile);
+  HmdfString HMDF_EXPORT getStationFile() const;
+  void HMDF_EXPORT setStationFile(const HmdfString &stationFile);
 
  private:
   enum FileType {
@@ -92,40 +93,49 @@ class Hmdf {
     NETCDF
   };
 
-  static FileType getFiletype(const std::string &filename);
-  static std::string getFileExtension(const std::string &filename);
-  std::string getFileBasename(const std::string &filename);
-  static void splitString(std::string &data, std::vector<std::string> &fresult);
-  static std::string sanitizeString(const std::string &a);
-  static bool splitStringHmdfFormat(const std::string &data, int &year,
+  static FileType getFiletype(const HmdfString &filename);
+  static HmdfString getFileExtension(const HmdfString &filename);
+  HmdfString getFileBasename(const HmdfString &filename);
+  static void splitString(HmdfString &data, HmdfVector<HmdfString> &fresult);
+  static HmdfString sanitizeString(const HmdfString &a);
+  static bool splitStringHmdfFormat(const HmdfString &data, int &year,
                                     int &month, int &day, int &hour,
                                     int &minute, int &second, double &value);
 
   int readAdcircAscii();
   int readAdcircNetCDF();
-  int readDelft3D();
-  int readDFlowFM();
+  int readNefisHeader();
+  int readDflowFmHeader();
+  int readDflowFmValue(const HmdfString &var);
   int readImeds();
   int readgenericNetCDF();
-  static size_t readAdcircStationFile(const std::string &filename,
-                                      std::vector<double> &x,
-                                      std::vector<double> &y);
+  static size_t readAdcircStationFile(const HmdfString &filename,
+                                      HmdfVector<double> &x,
+                                      HmdfVector<double> &y);
   static void ncCheck(const int retcode);
   static void nefCheck(const int retcode);
   static int getAdcircVariableId(const int ncid, int &varid1, int &varid2);
 
-  void getNefisDatasets(const char *series, std::vector<NefisSeriesMetadata> &metadata);
+  void getNefisDatasets(const char *series,
+                        HmdfVector<NefisSeriesMetadata> &metadata,
+                        const size_t numStations);
+  size_t getNefisLayers(HmdfString &layerModel);
+  size_t getNefisTimes(HmdfVector<Date> &time);
+  size_t getNefisStations();
+  size_t getNefisVarIndex(const HmdfString &var);
 
-  std::string m_filename;
+  HmdfString m_filename;
   Date m_coldstart;
-  std::string m_stationFile;
-  std::vector<std::string> m_headerData;
+  HmdfString m_stationFile;
+  HmdfVector<HmdfString> m_headerData;
+  HmdfVector<NefisSeriesMetadata> m_nefisMetadata;
+  HmdfVector<Date> m_nefisTimes;
+  size_t m_nefisLayers;
   bool m_success, m_null;
   int m_dimension;
   int m_epsg;
 
-  std::vector<Station> m_stations;
-
+  HmdfVector<Station> m_stations;
 };
 
 #endif  // HMDF_H

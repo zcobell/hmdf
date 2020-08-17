@@ -954,7 +954,7 @@ BInt4 GP_get_attribute ( BInt4   set        ,
     return nefis_errno;
   }
 
-  min_comp = min( MAX_NAME, (BInt4) strlen(att_name) );
+  min_comp = NEFISMIN( MAX_NAME, (BInt4) strlen(att_name) );
   start = 0;
   if (nefis[set].file_version == Version_1) {
       size_int = SIZE_BINT4;
@@ -2044,7 +2044,7 @@ BInt4 GP_inquire_max( BInt4    set      ,
     }
     for ( i=0; i<grp_num_dim; i++ )
     {
-        *max_index = max( *max_index,  grp_dimens[i]);
+        *max_index = NEFISMAX( *max_index,  grp_dimens[i]);
         if ( grp_dimens[i] == 0 )
         {
             *max_index = 0;

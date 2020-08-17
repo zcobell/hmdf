@@ -2,34 +2,38 @@
 #define NEFISSERIESMETADATA_H
 
 #include <iostream>
-#include <string>
 #include <vector>
+
+#include "types.h"
 
 class NefisSeriesMetadata {
  public:
   NefisSeriesMetadata();
 
-  std::string name() const;
-  void setName(const std::string &name);
+  HmdfString name() const;
+  void setName(const HmdfString &name);
 
-  std::string quantity() const;
-  void setQuantity(const std::string &quantity);
+  HmdfString quantity() const;
+  void setQuantity(const HmdfString &quantity);
 
-  std::string units() const;
-  void setUnits(const std::string &units);
+  HmdfString units() const;
+  void setUnits(const HmdfString &units);
 
-  std::string type() const;
-  void setType(const std::string &type);
+  HmdfString type() const;
+  void setType(const HmdfString &type);
 
-  std::string description() const;
-  void setDescription(const std::string &description);
+  HmdfString description() const;
+  void setDescription(const HmdfString &description);
+
+  HmdfString fromSeries() const;
+  void setFromSeries(const HmdfString &fromSeries);
 
   bool is3d() const;
   void setIs3d(bool is3d);
 
-  std::vector<size_t> *dim();
-  std::vector<size_t> cdim() const;
-  void setDim(const std::vector<size_t> &dim);
+  HmdfVector<size_t> *dim();
+  HmdfVector<size_t> cdim() const;
+  void setDim(const HmdfVector<size_t> &dim);
 
   void print(std::ostream &os = std::cout) const;
 
@@ -37,13 +41,14 @@ class NefisSeriesMetadata {
                                   const NefisSeriesMetadata &s);
 
  private:
-  std::string m_name;
-  std::string m_quantity;
-  std::string m_units;
-  std::string m_type;
-  std::string m_description;
+  HmdfString m_name;
+  HmdfString m_quantity;
+  HmdfString m_units;
+  HmdfString m_type;
+  HmdfString m_description;
+  HmdfString m_fromSeries;
   bool m_is3d;
-  std::vector<size_t> m_dim;
+  HmdfVector<size_t> m_dim;
 };
 
 #endif  // NEFISSERIESMETADATA_H

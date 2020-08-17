@@ -139,7 +139,7 @@ static BVoid C_Copy_text( BText name1 ,
 {
   BInt4 i       ;
   BInt4 max_copy;
-  max_copy = min ( (BInt4) strlen(name2), max_length);
+  max_copy = NEFISMIN ( (BInt4) strlen(name2), max_length);
   strncpy(name1, name2, max_copy);
   for ( i=max_copy; i<max_length; i++ )
   {
@@ -298,7 +298,7 @@ DLLEXPORT BInt4 DEFINE_CELL ( BInt4 * fd             ,
     }
     for ( i=0; i<cl_num_dim; i++ )
     {
-        max_copy = min( MAX_NAME, (BInt4) strlen(el_names[i]) );
+        max_copy = NEFISMIN( MAX_NAME, (BInt4) strlen(el_names[i]) );
         strncpy( &elm_names[i*(MAX_NAME+1)],  el_names [i], max_copy );
     }
     for ( i=0; i<cl_num_dim; i++ )
@@ -345,7 +345,7 @@ DLLEXPORT BInt4 DEFINE_CELL2 ( BInt4 * fd             ,
     }
     for ( i=0; i<cl_num_dim; i++ )
     {
-        max_copy = min( MAX_NAME, (BInt4) strlen(el_names[i]) );
+        max_copy = NEFISMIN( MAX_NAME, (BInt4) strlen(el_names[i]) );
         strncpy( &elm_names[i*(MAX_NAME+1)],  el_names [i], max_copy );
     }
     for ( i=0; i<cl_num_dim; i++ )
@@ -392,7 +392,7 @@ DLLEXPORT BInt4 DEFINE_CELL3 ( BInt4 * fd             ,
     }
     for ( i=0; i<cl_num_dim; i++ )
     {
-        max_copy = min( MAX_NAME, (BInt4) strlen(el_names+(MAX_NAME+1)*i) );
+        max_copy = NEFISMIN( MAX_NAME, (BInt4) strlen(el_names+(MAX_NAME+1)*i) );
         strncpy( &elm_names[i*(MAX_NAME+1)],  el_names+(MAX_NAME+1)*i, max_copy );
     }
     for ( i=0; i<cl_num_dim; i++ )

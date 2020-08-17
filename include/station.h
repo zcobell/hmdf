@@ -25,9 +25,10 @@
 
 class Station {
  public:
-  HMDF_EXPORT Station(size_t dimension = 1);
-  HMDF_EXPORT Station(size_t id, double x, double y, size_t dimension = 1,
-                      int epsg = 4326);
+  HMDF_EXPORT Station(const unsigned char dimension = 1);
+  HMDF_EXPORT Station(const size_t id, const double x, const double y,
+                      const unsigned char dimension = 1,
+                      const unsigned int epsg = 4326);
 
   double HMDF_EXPORT x() const;
   double HMDF_EXPORT y() const;
@@ -47,7 +48,7 @@ class Station {
 
   void HMDF_EXPORT push_back(const Timepoint &p);
   void HMDF_EXPORT operator<<(const Timepoint &p);
-  void HMDF_EXPORT operator<<(const std::vector<Timepoint> &p);
+  void HMDF_EXPORT operator<<(const HmdfVector<Timepoint> &p);
 
   void HMDF_EXPORT clear();
 
@@ -59,14 +60,14 @@ class Station {
 
   void HMDF_EXPORT allocate(size_t n);
 
-  std::string HMDF_EXPORT name() const;
-  void HMDF_EXPORT setName(const std::string &name);
+  HmdfString HMDF_EXPORT name() const;
+  void HMDF_EXPORT setName(const HmdfString &name);
 
   size_t HMDF_EXPORT id() const;
   void HMDF_EXPORT setId(const size_t &id);
 
-  std::string HMDF_EXPORT datum() const;
-  void HMDF_EXPORT setDatum(const std::string &datum);
+  HmdfString HMDF_EXPORT datum() const;
+  void HMDF_EXPORT setDatum(const HmdfString &datum);
 
   size_t HMDF_EXPORT dimension() const;
 
@@ -87,8 +88,8 @@ class Station {
   double HMDF_EXPORT range(size_t index = 0) const;
 
 #ifndef SWIG
-  typedef typename std::vector<Timepoint>::iterator iterator;
-  typedef typename std::vector<Timepoint>::const_iterator const_iterator;
+  typedef typename HmdfVector<Timepoint>::iterator iterator;
+  typedef typename HmdfVector<Timepoint>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
   const_iterator HMDF_EXPORT cbegin() const noexcept;
@@ -100,17 +101,17 @@ class Station {
                                               const Station *s);
 
  private:
-  std::vector<Timepoint> m_data;
-  std::string m_name;
-  std::string m_datum;
+  HmdfVector<Timepoint> m_data;
+  HmdfString m_name;
+  HmdfString m_datum;
   size_t m_id;
   double m_x;
   double m_y;
-  double m_epsg;
+  unsigned int m_epsg;
   double m_x_original;
   double m_y_original;
-  int m_epsg_original;
-  size_t m_dimension;
+  unsigned int m_epsg_original;
+  unsigned char m_dimension;
 };
 
 #endif  // STATION_H

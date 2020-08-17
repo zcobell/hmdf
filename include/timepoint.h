@@ -23,6 +23,7 @@
 
 #include "date.h"
 #include "hmdf_global.h"
+#include "types.h"
 
 class Timepoint {
  public:
@@ -36,7 +37,7 @@ class Timepoint {
                         const double v3);
 
   /// Generic vector constructor
-  HMDF_EXPORT Timepoint(const Date &d, std::vector<double> v);
+  HMDF_EXPORT Timepoint(const Date &d, HmdfVector<double> v);
 
   /// Templated constructor (c++ only) using variadic template
   template <typename... Double>
@@ -63,13 +64,13 @@ class Timepoint {
   void HMDF_EXPORT set(const Date &d, const double v1, const double v2);
   void HMDF_EXPORT set(const Date &d, const double v1, const double v2,
                        const double v3);
-  void HMDF_EXPORT set(const Date &d, const std::vector<double> &v);
+  void HMDF_EXPORT set(const Date &d, const HmdfVector<double> &v);
 
   void HMDF_EXPORT setValue(const double v);
   void HMDF_EXPORT setValue(const size_t index, const double v);
   void HMDF_EXPORT setValue(const double v1, const double v2);
   void HMDF_EXPORT setValue(const double v1, const double v2, const double v3);
-  void HMDF_EXPORT setValue(const std::vector<double> &v);
+  void HMDF_EXPORT setValue(const HmdfVector<double> &v);
 
   bool HMDF_EXPORT operator<(const Timepoint &p) const;
   bool HMDF_EXPORT operator>(const Timepoint &p) const;
@@ -85,8 +86,8 @@ class Timepoint {
   void HMDF_EXPORT redimension(size_t n);
 
 #ifndef SWIG
-  typedef typename std::vector<double>::iterator iterator;
-  typedef typename std::vector<double>::const_iterator const_iterator;
+  typedef typename HmdfVector<double>::iterator iterator;
+  typedef typename HmdfVector<double>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
   const_iterator HMDF_EXPORT cbegin() const noexcept;
@@ -98,7 +99,7 @@ class Timepoint {
 
  private:
   Date m_date;
-  std::vector<double> m_v;
+  HmdfVector<double> m_v;
 };
 
 #endif  // TIMEPOINT_H

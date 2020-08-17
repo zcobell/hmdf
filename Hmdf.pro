@@ -32,7 +32,8 @@ HEADERS += \
     include/logging.h \
     include/nefisseriesmetadata.h \
     include/station.h \
-    include/timepoint.h
+    include/timepoint.h \
+    include/types.h
 
 NETCDFHOME=/usr/local/Cellar/netcdf/4.7.4
 INCLUDEPATH += include

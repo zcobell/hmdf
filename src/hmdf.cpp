@@ -24,8 +24,8 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
-#include <string>
 #include <utility>
 
 #include "boost/algorithm/string/case_conv.hpp"
@@ -55,7 +55,7 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace phoenix = boost::phoenix;
 
-Hmdf::Hmdf(std::string filename, const Date &coldstart, std::string stationFile)
+Hmdf::Hmdf(HmdfString filename, const Date &coldstart, HmdfString stationFile)
     : m_filename(std::move(filename)),
       m_coldstart(coldstart),
       m_stationFile(std::move(stationFile)),
@@ -64,9 +64,9 @@ Hmdf::Hmdf(std::string filename, const Date &coldstart, std::string stationFile)
       m_dimension(0),
       m_epsg(4326) {}
 
-std::vector<std::string> Hmdf::headerData() const { return m_headerData; }
+HmdfVector<HmdfString> Hmdf::headerData() const { return m_headerData; }
 
-void Hmdf::setHeaderData(const std::vector<std::string> &headerData) {
+void Hmdf::setHeaderData(const HmdfVector<HmdfString> &headerData) {
   m_headerData = headerData;
 }
 
@@ -80,7 +80,7 @@ size_t Hmdf::nStations() const { return this->m_stations.size(); }
 
 void Hmdf::operator<<(const Station &s) { this->m_stations.push_back(s); }
 
-void Hmdf::operator<<(const std::vector<Station> &s) {
+void Hmdf::operator<<(const HmdfVector<Station> &s) {
   this->m_stations.insert(this->m_stations.end(), s.begin(), s.end());
 }
 
@@ -102,20 +102,20 @@ Hmdf::const_iterator Hmdf::cend() const noexcept {
   return this->m_stations.cend();
 }
 
-std::string Hmdf::getFileExtension(const std::string &filename) {
+HmdfString Hmdf::getFileExtension(const HmdfString &filename) {
   size_t pos = filename.rfind('.');
-  if (pos != std::string::npos) {
+  if (pos != HmdfString::npos) {
     return filename.substr(pos);
   }
-  return std::string();
+  return HmdfString();
 }
 
-std::string Hmdf::getFileBasename(const std::string &filename) {
+HmdfString Hmdf::getFileBasename(const HmdfString &filename) {
   size_t pos = filename.rfind(".");
-  if (pos != std::string::npos) {
-    return std::string(filename.begin(), filename.begin() + pos);
+  if (pos != HmdfString::npos) {
+    return HmdfString(filename.begin(), filename.begin() + pos);
   }
-  return std::string();
+  return HmdfString();
 }
 
 Station *Hmdf::station(size_t index) {
@@ -141,6 +141,13 @@ int Hmdf::reproject(int epsg) {
   return 0;
 }
 
+void Hmdf::setEpsg(int epsg) {
+  this->m_epsg = epsg;
+  for (auto &s : this->m_stations) {
+    s.setEpsg(epsg);
+  }
+}
+
 int Hmdf::resize(size_t n) {
   this->m_stations.resize(n);
   return 0;
@@ -162,10 +169,10 @@ int Hmdf::read() {
       ierr = this->readAdcircNetCDF();
       break;
     case Delft3D:
-      ierr = this->readDelft3D();
+      ierr = this->readNefisHeader();
       break;
     case DFlowFM:
-      ierr = this->readDFlowFM();
+      ierr = this->readDflowFmHeader();
       break;
     case IMEDS:
       ierr = this->readImeds();
@@ -181,10 +188,10 @@ int Hmdf::read() {
   return ierr;
 }
 
-int Hmdf::write(const std::string & /*filename*/) { return 0; }
+int Hmdf::write(const HmdfString & /*filename*/) { return 0; }
 
-Hmdf::FileType Hmdf::getFiletype(const std::string &filename) {
-  std::string ext = Hmdf::getFileExtension(filename);
+Hmdf::FileType Hmdf::getFiletype(const HmdfString &filename) {
+  HmdfString ext = Hmdf::getFileExtension(filename);
   boost::algorithm::to_lower(ext);
   if (ext == ".61" || ext == ".62" || ext == ".71" || ext == ".72") {
     return Hmdf::AdcircAscii;
@@ -199,16 +206,16 @@ Hmdf::FileType Hmdf::getFiletype(const std::string &filename) {
   return Hmdf::None;
 }
 
-size_t Hmdf::readAdcircStationFile(const std::string &filename,
-                                   std::vector<double> &x,
-                                   std::vector<double> &y) {
+size_t Hmdf::readAdcircStationFile(const HmdfString &filename,
+                                   HmdfVector<double> &x,
+                                   HmdfVector<double> &y) {
   std::fstream f(filename);
   if (f.bad()) {
     hmdf_throw_exception("Could not open the ADCIRC station file");
     return 1;
   }
 
-  std::string line;
+  HmdfString line;
   std::getline(f, line);
   size_t nsta = stoull(line);
   x.reserve(nsta);
@@ -236,8 +243,8 @@ size_t Hmdf::readAdcircStationFile(const std::string &filename,
 }
 
 int Hmdf::readAdcircAscii() {
-  std::vector<double> x;
-  std::vector<double> y;
+  HmdfVector<double> x;
+  HmdfVector<double> y;
   size_t nsta = this->readAdcircStationFile(this->m_stationFile, x, y);
 
   std::fstream f(this->m_filename);
@@ -246,7 +253,7 @@ int Hmdf::readAdcircAscii() {
     return 1;
   }
 
-  std::string line;
+  HmdfString line;
 
   //...Read fort.61 header
   std::getline(f, line);
@@ -360,12 +367,15 @@ void Hmdf::nefCheck(const int retcode) {
   if (retcode == 0) {
     return;
   }
-  hmdf_throw_exception("Internal error in NEFIS library");
+  char neferr[1024];
+  Neferr(2, neferr);
+  hmdf_throw_exception("Internal error in NEFIS library: Code " +
+                       std::to_string(retcode));
 }
 
 int Hmdf::getAdcircVariableId(const int ncid, int &varid1, int &varid2) {
-  const std::array<std::string, 4> vlist = {"zeta", "u-vel", "pressure",
-                                            "windx"};
+  const std::array<HmdfString, 4> vlist = {"zeta", "u-vel", "pressure",
+                                           "windx"};
   for (auto &v : vlist) {
     int ierr = nc_inq_varid(ncid, v.c_str(), &varid1);
     if (ierr != NC_NOERR) {
@@ -384,9 +394,9 @@ int Hmdf::getAdcircVariableId(const int ncid, int &varid1, int &varid2) {
   return 0;
 }
 
-std::string Hmdf::getStationFile() const { return m_stationFile; }
+HmdfString Hmdf::getStationFile() const { return m_stationFile; }
 
-void Hmdf::setStationFile(const std::string &stationFile) {
+void Hmdf::setStationFile(const HmdfString &stationFile) {
   m_stationFile = stationFile;
 }
 
@@ -394,9 +404,9 @@ Date Hmdf::getColdstart() const { return m_coldstart; }
 
 void Hmdf::setColdstart(const Date &coldstart) { m_coldstart = coldstart; }
 
-std::string Hmdf::getFilename() const { return m_filename; }
+HmdfString Hmdf::getFilename() const { return m_filename; }
 
-void Hmdf::setFilename(const std::string &filename) { m_filename = filename; }
+void Hmdf::setFilename(const HmdfString &filename) { m_filename = filename; }
 
 int Hmdf::readAdcircNetCDF() {
   int ncid;
@@ -420,7 +430,7 @@ int Hmdf::readAdcircNetCDF() {
   ncCheck(nc_inq_dimlen(ncid, dimid_time, &nsnap));
   std::unique_ptr<double[]> t(new double[nsnap]);
   ncCheck(nc_get_var(ncid, varid_time, t.get()));
-  std::vector<Date> date(nsnap);
+  HmdfVector<Date> date(nsnap);
   for (size_t i = 0; i < nsnap; ++i) {
     date[i] = this->m_coldstart + t[i];
   }
@@ -437,10 +447,10 @@ int Hmdf::readAdcircNetCDF() {
   ncCheck(nc_inq_dimlen(ncid, dimid_namelen, &stanamelen));
   std::unique_ptr<char[]> stnname(new char[nsta * stanamelen]);
   ncCheck(nc_get_var(ncid, varid_staname, stnname.get()));
-  std::vector<std::string> n;
+  HmdfVector<HmdfString> n;
   for (size_t i = 0; i < nsta; ++i) {
-    std::string a(stnname.get() + stanamelen * i,
-                  stnname.get() + (i + 1) * stanamelen);
+    HmdfString a(stnname.get() + stanamelen * i,
+                 stnname.get() + (i + 1) * stanamelen);
     n.push_back(a);
   }
 
@@ -486,21 +496,21 @@ int Hmdf::readAdcircNetCDF() {
   return 0;
 }
 
-void Hmdf::splitString(std::string &data, std::vector<std::string> &fresult) {
+void Hmdf::splitString(HmdfString &data, HmdfVector<HmdfString> &fresult) {
   boost::trim_if(data, boost::is_any_of(" ,"));
   boost::algorithm::split(fresult, data, boost::is_any_of(" ,"),
                           boost::token_compress_on);
 }
 
-std::string Hmdf::sanitizeString(const std::string &a) {
-  std::string b = a;
+HmdfString Hmdf::sanitizeString(const HmdfString &a) {
+  HmdfString b = a;
   boost::algorithm::trim(b);
   boost::algorithm::replace_all(b, "\t", " ");
   b.erase(std::remove(b.begin(), b.end(), '\r'), b.end());
   return b;
 }
 
-bool Hmdf::splitStringHmdfFormat(const std::string &data, int &year, int &month,
+bool Hmdf::splitStringHmdfFormat(const HmdfString &data, int &year, int &month,
                                  int &day, int &hour, int &minute, int &second,
                                  double &value) {
   bool r = qi::phrase_parse(data.begin(), data.end(),
@@ -534,7 +544,7 @@ int Hmdf::readImeds() {
   }
 
   //...Read Header
-  std::string templine;
+  HmdfString templine;
   std::getline(fid, templine);
   this->m_headerData.push_back(templine);
   std::getline(fid, templine);
@@ -549,7 +559,7 @@ int Hmdf::readImeds() {
   while (!fid.eof()) {
     templine = Hmdf::sanitizeString(templine);
 
-    std::vector<std::string> templist;
+    HmdfVector<HmdfString> templist;
     Hmdf::splitString(templine, templist);
 
     Station s(id, stod(templist[2]), stod(templist[1]), 1, 4326);
@@ -582,10 +592,11 @@ int Hmdf::readImeds() {
 }
 
 void Hmdf::getNefisDatasets(const char *series,
-                            std::vector<NefisSeriesMetadata> &metadata) {
-  const std::string basename = this->getFileBasename(this->m_filename);
-  BText datfile = strdup(std::string(basename + ".def").c_str());
-  BText deffile = strdup(std::string(basename + ".dat").c_str());
+                            HmdfVector<NefisSeriesMetadata> &metadata,
+                            const size_t numStations) {
+  const HmdfString basename = this->getFileBasename(this->m_filename);
+  BText datfile = strdup(HmdfString(basename + ".def").c_str());
+  BText deffile = strdup(HmdfString(basename + ".dat").c_str());
 
   BInt4 fid;
   this->nefCheck(Crenef(&fid, deffile, datfile, 'M', 'r'));
@@ -627,23 +638,246 @@ void Hmdf::getNefisDatasets(const char *series,
     se.setType(Hmdf::sanitizeString(type.get()));
     se.setUnits(Hmdf::sanitizeString(units.get()));
     se.setQuantity(Hmdf::sanitizeString(quantity.get()));
+    se.setFromSeries(series);
     se.dim()->reserve(ndim);
     for (int j = 0; j < ndim; ++j) {
       se.dim()->push_back(elmdimensions.get()[j]);
     }
-    metadata.push_back(se);
+
+    if (se.dim()->at(0) == numStations) {
+      metadata.push_back(se);
+    }
   }
 
-  ierr = Clsnef(&fid);
+  this->nefCheck(Clsnef(&fid));
   return;
 }
 
-int Hmdf::readgenericNetCDF() {}
+int Hmdf::readgenericNetCDF() { return 0; }
 
-int Hmdf::readDelft3D() {
-  std::vector<NefisSeriesMetadata> meta;
-  this->getNefisDatasets("his-series", meta);
-  this->getNefisDatasets("his-wave-series", meta);
+int Hmdf::readNefisHeader() {
+  HmdfString layerModel;
+  this->m_nefisMetadata.clear();
+  size_t nsta = this->getNefisStations();
+  this->getNefisTimes(this->m_nefisTimes);
+  this->m_nefisLayers = this->getNefisLayers(layerModel);
+  this->getNefisDatasets("his-series", this->m_nefisMetadata, nsta);
+  this->getNefisDatasets("his-wave-series", this->m_nefisMetadata, nsta);
+  return 0;
 }
 
-int Hmdf::readDFlowFM() {}
+size_t Hmdf::getNefisVarIndex(const HmdfString &var) {
+  for (size_t i = 0; i < this->m_nefisMetadata.size(); ++i) {
+    if (this->m_nefisMetadata[i].name() == var) {
+      return i;
+    }
+  }
+  return std::numeric_limits<size_t>::max();
+}
+
+int Hmdf::readNefisValue(const HmdfString &var, size_t layer) {
+  size_t idx = this->getNefisVarIndex(var);
+  if (idx == std::numeric_limits<size_t>::max()) {
+    return 1;
+  }
+
+  if (layer != 0) {
+    if (this->m_nefisMetadata[idx].dim()->size() != 3) {
+      return 1;
+    }
+    if (layer - 1 > this->m_nefisMetadata[idx].dim()->at(2)) {
+      return 1;
+    }
+  } else {
+    layer = 1;
+  }
+
+  BText src = strdup(this->m_nefisMetadata[idx].fromSeries().c_str());
+  BText series = strdup(this->m_nefisMetadata[idx].name().c_str());
+
+  const HmdfString basename = this->getFileBasename(this->m_filename);
+  BText datfile = strdup(HmdfString(basename + ".def").c_str());
+  BText deffile = strdup(HmdfString(basename + ".dat").c_str());
+
+  BInt4 fid;
+  this->nefCheck(Crenef(&fid, deffile, datfile, 'M', 'r'));
+
+  BInt4 uorder[3] = {1, 2, 3};
+  BInt4 uindex[MAX_NEFIS_DIM][3] = {
+      {1, static_cast<BInt4>(this->m_nefisTimes.size()), 1},
+      {1, static_cast<BInt4>(this->m_stations.size()), 1},
+      {static_cast<BInt4>(layer), static_cast<BInt4>(layer), 1},
+      {1, 1, 1},
+      {1, 1, 1}};
+
+  for (auto &s : this->m_stations) {
+    s.allocate(this->m_nefisTimes.size());
+  }
+
+  if (this->m_nefisMetadata[idx].type() == "REAL") {
+    std::unique_ptr<BRea4> realBuf(
+        new BRea4[this->m_nefisTimes.size() * this->m_stations.size()]);
+    BInt4 buffsize =
+        sizeof(BRea4) * this->m_nefisTimes.size() * this->m_stations.size();
+    this->nefCheck(Getelt(&fid, src, series, (BInt4 *)uindex, uorder, &buffsize,
+                          realBuf.get()));
+    for (size_t i = 0; i < this->m_nefisTimes.size(); ++i) {
+      for (size_t j = 0; j < this->m_stations.size(); ++j) {
+        this->m_stations[j]
+            << Timepoint(this->m_nefisTimes[i],
+                         realBuf.get()[i * this->m_stations.size() + j]);
+      }
+    }
+  } else if (this->m_nefisMetadata[idx].type() == "INTEGER") {
+  } else {
+    this->nefCheck(Clsnef(&fid));
+    return 1;
+  }
+
+  this->nefCheck(Clsnef(&fid));
+  return 0;
+}
+
+size_t Hmdf::getNefisStations() {
+  const HmdfString basename = this->getFileBasename(this->m_filename);
+  BText datfile = strdup(HmdfString(basename + ".def").c_str());
+  BText deffile = strdup(HmdfString(basename + ".dat").c_str());
+
+  BInt4 fid;
+  this->nefCheck(Crenef(&fid, deffile, datfile, 'M', 'r'));
+
+  BText hisconst = strdup("his-const");
+  BText xystat = strdup("XYSTAT");
+  BText namst = strdup("NAMST");
+  BInt4 uorder[2] = {1, 2};
+  BInt4 uindex[MAX_NEFIS_DIM][3] = {
+      {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+
+  std::unique_ptr<BChar> elmqty(new BChar[MAX_NEFIS_NAME + 1]);
+  std::unique_ptr<BChar> elmunt(new BChar[MAX_NEFIS_NAME + 1]);
+  std::unique_ptr<BChar> elmdes(new BChar[MAX_NEFIS_DESC + 1]);
+  std::unique_ptr<BInt4> elmdms(new BInt4[MAX_NEFIS_DIM]);
+  BInt4 elmndim = MAX_NEFIS_DIM;
+  BInt4 elmnbyte;
+  const int nefisNameLen = 20;
+
+  this->nefCheck(Inqelm(&fid, xystat, elmqty.get(), &elmnbyte, elmqty.get(),
+                        elmunt.get(), elmdes.get(), &elmndim, elmdms.get()));
+  size_t nsta = elmdms.get()[1];
+
+  if (nsta < 1) {
+    this->nefCheck(Clsnef(&fid));
+    return 0;
+  }
+
+  std::unique_ptr<BRea4> rbuf(new BRea4[nsta * 2]);
+  int rBufSize = nsta * 2 * sizeof(BRea4);
+
+  this->nefCheck(Getelt(&fid, hisconst, xystat, (BInt4 *)uindex, uorder,
+                        &rBufSize, (BData)rbuf.get()));
+
+  std::unique_ptr<BChar> charBuffer(new BChar[nsta * (nefisNameLen + 1)]);
+  int charBufSize = nsta * (nefisNameLen + 1);
+  BInt4 charOrder[1] = {1};
+  this->nefCheck(Getelt(&fid, hisconst, namst, (BInt4 *)uindex, charOrder,
+                        &charBufSize, (BData)charBuffer.get()));
+  this->nefCheck(Clsnef(&fid));
+
+  this->m_stations.reserve(nsta);
+  for (size_t i = 0; i < nsta; ++i) {
+    double x = rbuf.get()[i * 2];
+    double y = rbuf.get()[i * 2 + 1];
+    HmdfString name(&charBuffer.get()[i * nefisNameLen], nefisNameLen);
+    Station s(i, x, y, 1);
+    s.setName(name);
+    this->m_stations.push_back(s);
+  }
+
+  return nsta;
+}
+
+size_t Hmdf::getNefisLayers(HmdfString &layerModel) {
+  const HmdfString basename = this->getFileBasename(this->m_filename);
+  BText datfile = strdup(HmdfString(basename + ".def").c_str());
+  BText deffile = strdup(HmdfString(basename + ".dat").c_str());
+
+  BInt4 fid;
+  this->nefCheck(Crenef(&fid, deffile, datfile, 'M', 'r'));
+
+  BInt4 uindex[MAX_NEFIS_DIM][3] = {
+      {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+  BInt4 uorder[2] = {1, 2};
+  BInt4 intDataBuffer[1] = {0};
+  BInt4 intBuffSize = sizeof(BInt4);
+  BInt4 charBuffSize = 16 * sizeof(BChar);
+  BChar charDataBuffer[16];
+  BText hisconst = strdup("his-const");
+  BText kmax = strdup("KMAX");
+  BText laymodel = strdup("LAYER_MODEL");
+
+  this->nefCheck(Getelt(&fid, hisconst, kmax, (BInt4 *)uindex, (BInt4 *)uorder,
+                        &intBuffSize, &intDataBuffer));
+  this->nefCheck(Getelt(&fid, hisconst, laymodel, (BInt4 *)uindex,
+                        (BInt4 *)uorder, &charBuffSize, &charDataBuffer));
+  this->nefCheck(Clsnef(&fid));
+
+  layerModel = HmdfString(charDataBuffer, charDataBuffer + charBuffSize - 1);
+
+  return static_cast<size_t>(intDataBuffer[0]);
+}
+
+size_t Hmdf::getNefisTimes(HmdfVector<Date> &time) {
+  const HmdfString basename = this->getFileBasename(this->m_filename);
+  BText datfile = strdup(HmdfString(basename + ".def").c_str());
+  BText deffile = strdup(HmdfString(basename + ".dat").c_str());
+
+  BText hisconst = strdup("his-const");
+  BText hisinfoseries = strdup("his-info-series");
+  BText itdate = strdup("ITDATE");
+  BText ithisc = strdup("ITHISC");
+  //  BText dtc = strdup("DT");
+  //  BText tunitc = strdup("TUNIT");
+  BInt4 uorder[2] = {1, 2};
+  BInt4 uindex[MAX_NEFIS_DIM][3] = {
+      {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+
+  BInt4 fid;
+  this->nefCheck(Crenef(&fid, deffile, datfile, 'M', 'r'));
+
+  BInt4 ibuflen = 2 * sizeof(BInt4);
+  BInt4 ibuf[2] = {0, 0};
+  this->nefCheck(
+      Getelt(&fid, hisconst, itdate, (BInt4 *)uindex, uorder, &ibuflen, &ibuf));
+
+  int year = ibuf[0] / 10000;
+  int month = (ibuf[0] - (year * 10000)) / 100;
+  int day = ibuf[0] - (month * 100) - (year * 10000);
+  Date initDate(year, month, day, 0, 0, 0);
+
+  //  this->nefCheck(
+  //      Getelt(&fid, hisconst, dtc, (BInt4 *)uindex, uorder, &ibuflen,
+  //      &ibuf));
+  //  int dt = ibuf[0];
+
+  //  this->nefCheck(
+  //      Getelt(&fid, hisconst, tunitc, (BInt4 *)uindex, uorder, &ibuflen,
+  //      &ibuf));
+  //  int tunit = ibuf[0];
+
+  BInt4 nstep;
+  this->nefCheck(Inqmxi(&fid, hisinfoseries, &nstep));
+
+  time.reserve(nstep);
+  std::unique_ptr<BInt4> timeBuf(new BInt4[nstep]);
+  BInt4 timebuflen = sizeof(BInt4) * nstep;
+  uindex[0][1] = nstep;
+  this->nefCheck(Getelt(&fid, hisinfoseries, ithisc, (BInt4 *)uindex, uorder,
+                        &timebuflen, timeBuf.get()));
+  this->nefCheck(Clsnef(&fid));
+  for (int i = 0; i < nstep; ++i) {
+    time.push_back(initDate + timeBuf.get()[i]);
+  }
+  return static_cast<size_t>(nstep);
+}
+
+int Hmdf::readDflowFmHeader() { return 0; }

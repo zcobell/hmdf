@@ -786,7 +786,7 @@ static BInt4 RT_retrieve_file (
         return nefis_errno;
       }
       *write_bytes = elm_num_bytes;
-      max_comp = min( (BInt4)strlen(look_elm_name), MAX_NAME);
+      max_comp = NEFISMIN( (BInt4)strlen(look_elm_name), MAX_NAME);
       if ( strncmp(elm_name, look_elm_name, max_comp) == 0 )
       {
         break;

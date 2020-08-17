@@ -38,9 +38,9 @@
 #ifndef __BTPS__
 #define __BTPS__
 
-#ifndef max
-#  define max(a,b) (((a) > (b)) ? (a) : (b))
-#  define min(a,b) (((a) < (b)) ? (a) : (b))
+#ifndef NEFISMAX
+#  define NEFISMAX(a,b) (((a) > (b)) ? (a) : (b))
+#  define NEFISMIN(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
   typedef  void             BVoid    ;     /* void                      */

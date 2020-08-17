@@ -205,8 +205,8 @@ static BVoid F_Copy_text( BText name1       ,
 {
   BInt4 i       ;
   BInt4 max_copy;
-  max_copy = min ( given_length, (BInt4)strlen(name2));
-  max_copy = min ( max_copy, max_length);
+  max_copy = NEFISMIN ( given_length, (BInt4)strlen(name2));
+  max_copy = NEFISMIN ( max_copy, max_length);
   strncpy(name1, name2, max_copy);
   for ( i=max_copy; i<max_length; i++ )
   {
@@ -220,7 +220,7 @@ static char * strFcpy(char * str_1, int len)
 {
     int m;
     char * str_2;
-    m = min( len, (BInt4) strlen(str_1));
+    m = NEFISMIN( len, (BInt4) strlen(str_1));
     str_2 = (char *) malloc( sizeof(char)*(m+1));
     strncpy(str_2, str_1, m);
     str_2[m] = '\0';
@@ -416,7 +416,7 @@ DLLEXPORT BInt4 FTN_CALL DEFINE_CEL  ( BInt4 * fd             ,
   for ( i=0; i<*cl_num_dim; i++ )
   {
     max_copy = f2c_strlen(el_names, el_names_length);
-    max_copy = min ( max_copy        , MAX_NAME              );
+    max_copy = NEFISMIN ( max_copy        , MAX_NAME              );
     strncpy(&elm_names[i*(MAX_NAME+1)], &el_names[i*max_copy], max_copy);
     for ( j = i*(MAX_NAME+1) + max_copy;
           j < i*(MAX_NAME+1) + MAX_NAME;
@@ -2975,7 +2975,7 @@ DLLEXPORT BInt4 FTN_CALL GET_NEFIS_VERSION  ( BText nef_version, BInt4   version
 
   nefis_errno = OC_get_version(&nefis_version);
 
-  min_length = min(version_length, (BInt4) strlen(nefis_version));
+  min_length = NEFISMIN(version_length, (BInt4) strlen(nefis_version));
 
   if ( nefis_errno == 0 )
   {

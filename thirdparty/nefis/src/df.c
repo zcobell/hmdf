@@ -184,10 +184,10 @@ BInt4 Define_element ( BInt4    set         ,
 
     strncpy(elm_buf.st+offset[2], "       1"      , 8);
 
-    max_copy = min( MAX_NAME, (BUInt4) strlen(elm_name    ) );
+    max_copy = NEFISMIN( MAX_NAME, (BUInt4) strlen(elm_name    ) );
     strncpy(elm_buf.st+offset[3], elm_name    , max_copy);
 
-    max_copy = min( MAX_TYPE, (BUInt4) strlen(elm_type    ) );
+    max_copy = NEFISMIN( MAX_TYPE, (BUInt4) strlen(elm_type    ) );
     strncpy(elm_buf.st+offset[4], elm_type    , max_copy);
 
     nefis_errno = DF_check_bytes_elm(&num_bytes, elm_type, elm_single_bytes, elm_num_dim);
@@ -207,13 +207,13 @@ BInt4 Define_element ( BInt4    set         ,
     index  = offset[6]/SIZE_BINT4;
     elm_buf.in [index] = (BUInt4) num_bytes;
 
-    max_copy = min( MAX_NAME, (BUInt4) strlen(elm_quantity) );
+    max_copy = NEFISMIN( MAX_NAME, (BUInt4) strlen(elm_quantity) );
     strncpy(elm_buf.st+offset[7], elm_quantity, max_copy);
 
-    max_copy = min( MAX_NAME, (BUInt4) strlen(elm_unity   ) );
+    max_copy = NEFISMIN( MAX_NAME, (BUInt4) strlen(elm_unity   ) );
     strncpy(elm_buf.st+offset[8], elm_unity   , max_copy);
 
-    max_copy = min( MAX_DESC, (BUInt4) strlen(elm_desc    ) );
+    max_copy = NEFISMIN( MAX_DESC, (BUInt4) strlen(elm_desc    ) );
     strncpy(elm_buf.st+offset[9], elm_desc    , max_copy);
 
     index = offset[10]/SIZE_BINT4;
@@ -459,7 +459,7 @@ BInt4 Define_cel ( BInt4   set       ,
 
     strncpy(cel_buf->st+offset[2], "       2"      , 8);
 
-    max_copy = min( MAX_NAME, (BInt4)strlen(cel_name    ) );
+    max_copy = NEFISMIN( MAX_NAME, (BInt4)strlen(cel_name    ) );
     strncpy(cel_buf->st+offset[3], cel_name    , max_copy);
 
     index  = offset[4]/SIZE_BINT8;
@@ -474,7 +474,7 @@ BInt4 Define_cel ( BInt4   set       ,
     index  = offset[4]/SIZE_BINT8;
     for ( i=0; i<cel_dimens; i++ )
     {
-        max_copy = min( MAX_NAME, (BUInt4) strlen(elm_names+i*(MAX_NAME+1)) );
+        max_copy = NEFISMIN( MAX_NAME, (BUInt4) strlen(elm_names+i*(MAX_NAME+1)) );
         strncpy( elm_name, elm_names + i*(MAX_NAME+1), max_copy );
         elm_name[max_copy] = '\0';
 
@@ -504,7 +504,7 @@ BInt4 Define_cel ( BInt4   set       ,
                 return nefis_errno;
             }
 
-            max_copy = min( MAX_NAME, (BUInt4) strlen(elm_name) );
+            max_copy = NEFISMIN( MAX_NAME, (BUInt4) strlen(elm_name) );
             strncpy( cel_buf->st+offset[6]+MAX_NAME*i, elm_name, max_copy );
             size_cel_buf += MAX_NAME;
             /*
@@ -759,10 +759,10 @@ BInt4 Define_group ( BInt4   set         ,
 
     strncpy(grp_buf.st+offset[2], "       3"   , 8);
 
-    max_copy = min( MAX_NAME, (BInt4)strlen(grp_name) );
+    max_copy = NEFISMIN( MAX_NAME, (BInt4)strlen(grp_name) );
     strncpy(grp_buf.st+offset[3], grp_name , max_copy );
 
-    max_copy = min( MAX_NAME, (BInt4)strlen(cel_name) );
+    max_copy = NEFISMIN( MAX_NAME, (BInt4)strlen(cel_name) );
     strncpy(grp_buf.st+offset[4], cel_name , max_copy );
 
     index = offset[5]/SIZE_BINT4;
@@ -1105,10 +1105,10 @@ BInt4 Define_data ( BInt4   set         ,
         strncpy(dat_buf.st+offset[2], "       4"      , 8        );
     }
 
-    max_copy = min( MAX_NAME, (BUInt4) strlen(grp_name) );
+    max_copy = NEFISMIN( MAX_NAME, (BUInt4) strlen(grp_name) );
     strncpy(dat_buf.st+offset[3], grp_name    , max_copy );
 
-    max_copy = min( MAX_NAME, (BUInt4) strlen(grp_defined) );
+    max_copy = NEFISMIN( MAX_NAME, (BUInt4) strlen(grp_defined) );
     strncpy(dat_buf.st+offset[4], grp_defined , max_copy );
 
 /*
