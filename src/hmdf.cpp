@@ -925,6 +925,55 @@ Date Hmdf::string2date(const std::string &str) {
   return Date(year, month, day, hour, minute, second);
 }
 
+Station Hmdf::readGenericNetcdfStation(const int ncid, const int idx,
+                                       const std::vector<double> &xcoor,
+                                       const std::vector<double> &ycoor,
+                                       const std::string &stationNames,
+                                       const size_t namelen, const int epsg) {
+  HmdfString n = stationNames.substr(idx * namelen, namelen);
+  n.erase(n.find_last_not_of(" \n\r\t") + 1);
+  Station s(idx, xcoor[idx], ycoor[idx], 1);
+  s.setName(n);
+  s.setEpsg(epsg);
+
+  std::string timeVarName =
+      boost::str(boost::format("time_station_%04d") % (idx + 1));
+  std::string dataVarName =
+      boost::str(boost::format("data_station_%04d") % (idx + 1));
+  std::string dimName =
+      boost::str(boost::format("stationLength_%04d") % (idx + 1));
+
+  int dimid_stationLength;
+  int varid_time;
+  int varid_data;
+  size_t len;
+  Hmdf::ncCheck(nc_inq_dimid(ncid, dimName.c_str(), &dimid_stationLength),
+                ncid);
+  Hmdf::ncCheck(nc_inq_dimlen(ncid, dimid_stationLength, &len), ncid);
+  Hmdf::ncCheck(nc_inq_varid(ncid, timeVarName.c_str(), &varid_time), ncid);
+  Hmdf::ncCheck(nc_inq_varid(ncid, dataVarName.c_str(), &varid_data), ncid);
+
+  HmdfString refDateStr =
+      Hmdf::checkTextAttLenAndReturn(ncid, varid_time, "referenceDate");
+  Date refDate = refDateStr == "none" ? Date(1970, 1, 1, 0, 0, 0)
+                                      : Hmdf::string2date(refDateStr);
+
+  s.setDatum(Hmdf::checkTextAttLenAndReturn(ncid, varid_data, "datum"));
+  s.setUnits(Hmdf::checkTextAttLenAndReturn(ncid, varid_data, "units"));
+  s.setTimezone(Hmdf::checkTextAttLenAndReturn(ncid, varid_time, "timezone"));
+
+  std::vector<long long> date(len);
+  std::vector<double> data(len);
+  Hmdf::ncCheck(nc_get_var_longlong(ncid, varid_time, date.data()), ncid);
+  Hmdf::ncCheck(nc_get_var_double(ncid, varid_data, data.data()), ncid);
+
+  s.allocate(len);
+  for (size_t i = 0; i < len; ++i) {
+    s << Timepoint(refDate + date[i], data[i]);
+  }
+  return s;
+}
+
 int Hmdf::readGenericNetcdf() {
   int ncid;
   Hmdf::ncCheck(nc_open(this->m_filename.c_str(), NC_NOWRITE, &ncid));
@@ -965,49 +1014,8 @@ int Hmdf::readGenericNetcdf() {
 
   this->m_stations.reserve(nsta);
   for (size_t i = 0; i < nsta; ++i) {
-    HmdfString n = stationName.substr(i * staNameLen, staNameLen);
-    n.erase(n.find_last_not_of(" \n\r\t") + 1);
-    Station s(i, stationXcoor[i], stationYcoor[i], 1);
-    s.setName(n);
-    s.setEpsg(epsg);
-
-    std::string timeVarName =
-        boost::str(boost::format("time_station_%04d") % (i + 1));
-    std::string dataVarName =
-        boost::str(boost::format("data_station_%04d") % (i + 1));
-    std::string dimName =
-        boost::str(boost::format("stationLength_%04d") % (i + 1));
-
-    int dimid_stationLength;
-    int varid_time;
-    int varid_data;
-    size_t len;
-    Hmdf::ncCheck(nc_inq_dimid(ncid, dimName.c_str(), &dimid_stationLength),
-                  ncid);
-    Hmdf::ncCheck(nc_inq_dimlen(ncid, dimid_stationLength, &len), ncid);
-    Hmdf::ncCheck(nc_inq_varid(ncid, timeVarName.c_str(), &varid_time), ncid);
-    Hmdf::ncCheck(nc_inq_varid(ncid, dataVarName.c_str(), &varid_data), ncid);
-
-    HmdfString refDateStr =
-        Hmdf::checkTextAttLenAndReturn(ncid, varid_time, "referenceDate");
-    Date refDate = refDateStr == "none" ? Date(1970, 1, 1, 0, 0, 0)
-                                        : string2date(refDateStr);
-
-    s.setDatum(Hmdf::checkTextAttLenAndReturn(ncid, varid_data, "datum"));
-    s.setUnits(Hmdf::checkTextAttLenAndReturn(ncid, varid_data, "units"));
-    s.setTimezone(Hmdf::checkTextAttLenAndReturn(ncid, varid_time, "timezone"));
-
-    std::vector<long long> date(len);
-    std::vector<double> data(len);
-    Hmdf::ncCheck(nc_get_var_longlong(ncid, varid_time, date.data()), ncid);
-    Hmdf::ncCheck(nc_get_var_double(ncid, varid_data, data.data()), ncid);
-
-    s.allocate(len);
-    for (size_t i = 0; i < len; ++i) {
-      s << Timepoint(refDate + date[i], data[i]);
-    }
-
-    this->m_stations.push_back(std::move(s));
+    this->m_stations.push_back(Hmdf::readGenericNetcdfStation(
+        ncid, i, stationXcoor, stationYcoor, stationName, staNameLen, epsg));
   }
 
   return 0;

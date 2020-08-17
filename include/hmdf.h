@@ -103,7 +103,14 @@ class Hmdf {
                                     int &minute, int &second, double &value);
   static FileType checkNetcdfType(const HmdfString &filename);
   static HmdfString checkTextAttLenAndReturn(const int ncid, const int varid,
-                                  const std::string &att);
+                                             const std::string &att);
+  static Station readGenericNetcdfStation(const int ncid, const int idx,
+                                          const std::vector<double> &xcoor,
+                                          const std::vector<double> &ycoor,
+                                          const std::string &stationNames,
+                                          const size_t namelen, const int epsg);
+  static Date string2date(const std::string &str);
+
   int readAdcircAscii();
   int readAdcircNetCDF();
   int readNefisHeader();
@@ -138,7 +145,6 @@ class Hmdf {
   int m_epsg;
 
   HmdfVector<Station> m_stations;
-  Date string2date(const std::string &str);
 };
 
 #endif  // HMDF_H
