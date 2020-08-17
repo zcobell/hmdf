@@ -30,6 +30,7 @@
 %{
     #define SWIG_FILE_WITH_INIT
     #include "hmdf_global.h"
+    #include "types.h"
     #include "hmdf.h"
     #include "station.h"
     #include "timepoint.h"
@@ -60,6 +61,7 @@ namespace std {
 }
 
 %include "hmdf_global.h"
+%include "types.h"
 %include "hmdf.h"
 %include "station.h"
 %include "timepoint.h"
