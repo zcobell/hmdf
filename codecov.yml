@@ -29,3 +29,5 @@ ignore:
   - thirdparty/**/*
   - testing/**/*
   - build/**/*
+  - include/date.h
+  - src/date.cpp

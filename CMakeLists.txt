@@ -475,7 +475,8 @@ if(UNIX OR CYGWIN)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cxx)
 
     set(TEST_LIST "cxx_readAdcirc.cpp" "cxx_readAdcircNetcdf.cpp"
-                  "cxx_readNefis.cpp")
+                  "cxx_readNefis.cpp" "cxx_readGenericNetcdf.cpp"
+                  "cxx_readImeds.cpp" )
 
     foreach(TESTFILE ${TEST_LIST})
       get_filename_component(TESTNAME ${TESTFILE} NAME_WE)
