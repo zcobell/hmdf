@@ -1,5 +1,5 @@
-#ifndef HMDFDATE_H
-#define HMDFDATE_H
+#ifndef HMDF_DATE_H
+#define HMDF_DATE_H
 /*------------------------------GPL---------------------------------------//
 // This file is part of HMDF.
 //
@@ -28,6 +28,8 @@
 
 #include "hmdf_global.h"
 
+namespace Hmdf {
+
 class Date {
  public:
   using milliseconds = std::chrono::milliseconds;
@@ -48,16 +50,16 @@ class Date {
   HMDF_EXPORT Date();
   HMDF_EXPORT Date(const std::chrono::system_clock::time_point &t);
   HMDF_EXPORT Date(const std::vector<int> &v);
-  HMDF_EXPORT Date(const Date &d);
+  HMDF_EXPORT Date(const Hmdf::Date &d);
   HMDF_EXPORT Date(int year, int month = 1, int day = 1, int hour = 0,
                    int minute = 0, int second = 0, int millisecond = 0);
 
 #ifndef SWIG
   //...operator overloads
-  bool HMDF_EXPORT operator<(const Date &d) const;
-  bool HMDF_EXPORT operator>(const Date &d) const;
-  bool HMDF_EXPORT operator==(const Date &d) const;
-  bool HMDF_EXPORT operator!=(const Date &d) const;
+  bool HMDF_EXPORT operator<(const Hmdf::Date &d) const;
+  bool HMDF_EXPORT operator>(const Hmdf::Date &d) const;
+  bool HMDF_EXPORT operator==(const Hmdf::Date &d) const;
+  bool HMDF_EXPORT operator!=(const Hmdf::Date &d) const;
 
   template <class T, typename std::enable_if<std::is_integral<T>::value>::type
                          * = nullptr>
@@ -74,24 +76,24 @@ class Date {
     return *this;
   }
 
-  template <class T,
-            typename std::enable_if<!std::is_integral<T>::value &&
-                                    !std::is_floating_point<T>::value &&
-                                    !std::is_same<T, Date::years>::value &&
-                                    !std::is_same<T, Date::months>::value>::type
-                * = nullptr>
+  template <
+      class T,
+      typename std::enable_if<
+          !std::is_integral<T>::value && !std::is_floating_point<T>::value &&
+          !std::is_same<T, Hmdf::Date::years>::value &&
+          !std::is_same<T, Hmdf::Date::months>::value>::type * = nullptr>
   Date &operator+=(const T &rhs) {
     this->m_datetime += rhs;
     return *this;
   }
 
-  Date HMDF_EXPORT &operator+=(const Date::years &rhs);
-  Date HMDF_EXPORT &operator+=(const Date::months &rhs);
+  Date HMDF_EXPORT &operator+=(const Hmdf::Date::years &rhs);
+  Date HMDF_EXPORT &operator+=(const Hmdf::Date::months &rhs);
 
   template <class T, typename std::enable_if<std::is_integral<T>::value>::type
                          * = nullptr>
   Date &operator-=(const T &rhs) {
-    this->m_datetime -= Date::seconds(rhs);
+    this->m_datetime -= Hmdf::Date::seconds(rhs);
     return *this;
   }
 
@@ -99,25 +101,26 @@ class Date {
                          std::is_floating_point<T>::value>::type * = nullptr>
   Date &operator-=(const T &rhs) {
     this->m_datetime -=
-        Date::milliseconds(static_cast<long>(std::floor(rhs * 1000.0)));
+        Hmdf::Date::milliseconds(static_cast<long>(std::floor(rhs * 1000.0)));
     return *this;
   }
 
-  template <class T,
-            typename std::enable_if<!std::is_integral<T>::value &&
-                                    !std::is_floating_point<T>::value &&
-                                    !std::is_same<T, Date::years>::value &&
-                                    !std::is_same<T, Date::months>::value>::type
-                * = nullptr>
+  template <
+      class T,
+      typename std::enable_if<
+          !std::is_integral<T>::value && !std::is_floating_point<T>::value &&
+          !std::is_same<T, Hmdf::Date::years>::value &&
+          !std::is_same<T, Hmdf::Date::months>::value>::type * = nullptr>
   Date &operator-=(const T &rhs) {
     this->m_datetime -= rhs;
     return *this;
   }
 
-  Date HMDF_EXPORT &operator-=(const Date::years &rhs);
-  Date HMDF_EXPORT &operator-=(const Date::months &rhs);
+  Date HMDF_EXPORT &operator-=(const Hmdf::Date::years &rhs);
+  Date HMDF_EXPORT &operator-=(const Hmdf::Date::months &rhs);
 
-  friend std::ostream HMDF_EXPORT &operator<<(std::ostream &os, const Date &dt);
+  friend std::ostream HMDF_EXPORT &operator<<(std::ostream &os,
+                                              const Hmdf::Date &dt);
 
   // end operator overloads
 #endif
@@ -130,18 +133,18 @@ class Date {
   void HMDF_EXPORT addMonths(const long &value);
   void HMDF_EXPORT addYears(const long &value);
 
-  static Date maxDate() { return Date(3000, 1, 1, 0, 0, 0); }
-  static Date minDate() { return Date(1900, 1, 1, 0, 0, 0); }
+  static Date maxDate() { return Hmdf::Date(3000, 1, 1, 0, 0, 0); }
+  static Date minDate() { return Hmdf::Date(1900, 1, 1, 0, 0, 0); }
 
   std::vector<int> HMDF_EXPORT get() const;
 
   void HMDF_EXPORT set(const std::vector<int> &v);
   void HMDF_EXPORT set(const std::chrono::system_clock::time_point &t);
-  void HMDF_EXPORT set(const Date &v);
+  void HMDF_EXPORT set(const Hmdf::Date &v);
   void HMDF_EXPORT set(int year, int month = 1, int day = 1, int hour = 0,
                        int minute = 0, int second = 0, int millisecond = 0);
 
-  void HMDF_EXPORT fromSeconds(long seconds);
+  void HMDF_EXPORT fromSeconds(long long seconds);
 
   void HMDF_EXPORT fromMSeconds(long long mseconds);
 
@@ -178,57 +181,72 @@ class Date {
 
   std::chrono::system_clock::time_point HMDF_EXPORT time_point() const;
 
-  static Date HMDF_EXPORT now();
+  static Hmdf::Date HMDF_EXPORT now();
 
  private:
   std::chrono::system_clock::time_point m_datetime;
 };
+}  // namespace Hmdf
 
 template <typename T>
-Date operator+(Date lhs, const T &rhs) {
+Hmdf::Date operator+(Hmdf::Date lhs, const T &rhs) {
   lhs += rhs;
   return lhs;
 }
 
 template <typename T>
-Date operator-(Date lhs, const T &rhs) {
+Hmdf::Date operator-(Hmdf::Date lhs, const T &rhs) {
   lhs -= rhs;
   return lhs;
 }
 
 #ifndef SWIG
-template Date HMDF_EXPORT operator+(Date, const short &);
-template Date HMDF_EXPORT operator+(Date, const int &);
-template Date HMDF_EXPORT operator+(Date, const long &);
-template Date HMDF_EXPORT operator+(Date, const unsigned short &);
-template Date HMDF_EXPORT operator+(Date, const unsigned int &);
-template Date HMDF_EXPORT operator+(Date, const unsigned long &);
-template Date HMDF_EXPORT operator+(Date, const float &);
-template Date HMDF_EXPORT operator+(Date, const double &);
-template Date HMDF_EXPORT operator+(Date, const Date::milliseconds &);
-template Date HMDF_EXPORT operator+(Date, const Date::seconds &);
-template Date HMDF_EXPORT operator+(Date, const Date::minutes &);
-template Date HMDF_EXPORT operator+(Date, const Date::hours &);
-template Date HMDF_EXPORT operator+(Date, const Date::days &);
-template Date HMDF_EXPORT operator+(Date, const Date::months &);
-template Date HMDF_EXPORT operator+(Date, const Date::weeks &);
-template Date HMDF_EXPORT operator+(Date, const Date::years &);
-template Date HMDF_EXPORT operator-(Date, const short &);
-template Date HMDF_EXPORT operator-(Date, const int &);
-template Date HMDF_EXPORT operator-(Date, const long &);
-template Date HMDF_EXPORT operator-(Date, const unsigned short &);
-template Date HMDF_EXPORT operator-(Date, const unsigned int &);
-template Date HMDF_EXPORT operator-(Date, const unsigned long &);
-template Date HMDF_EXPORT operator-(Date, const float &);
-template Date HMDF_EXPORT operator-(Date, const double &);
-template Date HMDF_EXPORT operator-(Date, const Date::milliseconds &);
-template Date HMDF_EXPORT operator-(Date, const Date::seconds &);
-template Date HMDF_EXPORT operator-(Date, const Date::minutes &);
-template Date HMDF_EXPORT operator-(Date, const Date::hours &);
-template Date HMDF_EXPORT operator-(Date, const Date::days &);
-template Date HMDF_EXPORT operator-(Date, const Date::months &);
-template Date HMDF_EXPORT operator-(Date, const Date::weeks &);
-template Date HMDF_EXPORT operator-(Date, const Date::years &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const short &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const int &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const long &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const unsigned short &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const unsigned int &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const unsigned long &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const float &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const double &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date,
+                                          const Hmdf::Date::milliseconds &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date,
+                                          const Hmdf::Date::seconds &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date,
+                                          const Hmdf::Date::minutes &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date,
+                                          const Hmdf::Date::hours &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const Hmdf::Date::days &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date,
+                                          const Hmdf::Date::months &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date,
+                                          const Hmdf::Date::weeks &);
+template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date,
+                                          const Hmdf::Date::years &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const short &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const int &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const long &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const unsigned short &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const unsigned int &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const unsigned long &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const float &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const double &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date,
+                                          const Hmdf::Date::milliseconds &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date,
+                                          const Hmdf::Date::seconds &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date,
+                                          const Hmdf::Date::minutes &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date,
+                                          const Hmdf::Date::hours &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date, const Hmdf::Date::days &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date,
+                                          const Hmdf::Date::months &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date,
+                                          const Hmdf::Date::weeks &);
+template Hmdf::Date HMDF_EXPORT operator-(Hmdf::Date,
+                                          const Hmdf::Date::years &);
 #endif
 
 #endif  // HMDFDATE_H

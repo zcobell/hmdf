@@ -1,7 +1,7 @@
 #-------------------------------GPL-------------------------------------#
 #
-# MetOceanViewer - A library for working with ADCIRC models
-# Copyright (C) 2016  Zach Cobell
+# Hdf - A library for working with timeseries data
+# Copyright (C) 2020  Zach Cobell
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,11 +21,11 @@
 
 QT       -= core gui
 
-TARGET = movNefis
+TARGET = nefis
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += static
 
-unix:!macx{
+unix{
 QMAKE_CFLAGS = -D_GNU_SOURCE -DSTR_LEN_AT_END -DFTN_UNDERSCORE \
                -D_FILE_OFFSET_BITS=64 -DPTR8 -DHAVE_CONFIG_H \
                -DLINUX64 -w
@@ -53,36 +53,36 @@ QMAKE_CXXFLAGS_RELEASE = -D_GNU_SOURCE -DSTR_LEN_AT_END -DFTN_UNDERSCORE \
                -DW64 -w
 }
 
-INCLUDEPATH += ../../thirdparty/nefis/include
+INCLUDEPATH += include
 
-SOURCES += ../../thirdparty/nefis/src/c2c.c \
-           ../../thirdparty/nefis/src/df.c  \
-           ../../thirdparty/nefis/src/er.c  \
-           ../../thirdparty/nefis/src/f2c.c \
-           ../../thirdparty/nefis/src/gp.c  \
-           ../../thirdparty/nefis/src/gt.c  \
-           ../../thirdparty/nefis/src/hs.c  \
-           ../../thirdparty/nefis/src/nefis_version.cpp \
-           ../../thirdparty/nefis/src/oc.c  \
-           ../../thirdparty/nefis/src/pt.c  \
-           ../../thirdparty/nefis/src/rt.c  \
-           ../../thirdparty/nefis/src/wl-xdr.c
+SOURCES += src/c2c.c \
+           src/df.c  \
+           src/er.c  \
+           src/f2c.c \
+           src/gp.c  \
+           src/gt.c  \
+           src/hs.c  \
+           src/nefis_version.cpp \
+           src/oc.c  \
+           src/pt.c  \
+           src/rt.c  \
+           src/wl-xdr.c
 
-HEADERS += ../../thirdparty/nefis/include/btps.h \
-           ../../thirdparty/nefis/include/c2c.h \
-           ../../thirdparty/nefis/include/config.h \
-           ../../thirdparty/nefis/include/df.h \
-           ../../thirdparty/nefis/include/f2c.h \
-           ../../thirdparty/nefis/include/gp.h \
-           ../../thirdparty/nefis/include/gt.h \
-           ../../thirdparty/nefis/include/hs.h \
-           ../../thirdparty/nefis/include/nef-def.h \
-           ../../thirdparty/nefis/include/nef-tag.h \
-           ../../thirdparty/nefis/include/nef-xdf.h \
-           ../../thirdparty/nefis/include/nefis.h \
-           ../../thirdparty/nefis/include/nefis_version.h \
-           ../../thirdparty/nefis/include/oc.h \
-           ../../thirdparty/nefis/include/pt.h \
-           ../../thirdparty/nefis/include/resource.h \
-           ../../thirdparty/nefis/include/rt.h \
-           ../../thirdparty/nefis/include/wl-xdr.h
+HEADERS += include/btps.h \
+           include/c2c.h \
+           include/config.h \
+           include/df.h \
+           include/f2c.h \
+           include/gp.h \
+           include/gt.h \
+           include/hs.h \
+           include/nef-def.h \
+           include/nef-tag.h \
+           include/nef-xdf.h \
+           include/nefis.h \
+           include/nefis_version.h \
+           include/oc.h \
+           include/pt.h \
+           include/resource.h \
+           include/rt.h \
+           include/wl-xdr.h

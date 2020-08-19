@@ -22,6 +22,8 @@
 #include <cmath>
 #include <utility>
 
+using namespace Hmdf;
+
 Timepoint::Timepoint() : m_date(0), m_v{0} {}
 
 Timepoint::Timepoint(const Date &d, const double v) : m_date(d), m_v{v} {};
@@ -143,7 +145,7 @@ Timepoint::const_iterator Timepoint::cend() const noexcept {
   return this->m_v.cend();
 }
 
-std::ostream &operator<<(std::ostream &os, const Timepoint &t) {
+std::ostream &Hmdf::operator<<(std::ostream &os, const Timepoint &t) {
   os << t.date().toString() << " ";
   for (double i : t.m_v) {
     os << i << " ";
@@ -171,5 +173,20 @@ double Timepoint::direction() {
     return a + 360.0;
   } else {
     return a;
+  }
+}
+
+void Timepoint::shift(const long time, const double value) {
+  this->m_date += time;
+  for (auto &v : this->m_v) {
+    v += value;
+  }
+}
+
+void Timepoint::shift(const long time, const std::vector<double> &value) {
+  assert(value.size() == this->m_v.size());
+  this->m_date += time;
+  for (size_t i = 0; i < this->m_v.size(); ++i) {
+    this->m_v[i] += value[i];
   }
 }

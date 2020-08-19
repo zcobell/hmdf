@@ -1,5 +1,5 @@
-#ifndef LOGGING_H
-#define LOGGING_H
+#ifndef HMDF_LOGGING_H
+#define HMDF_LOGGING_H
 /*------------------------------GPL---------------------------------------//
 // This file is part of HMDF.
 //
@@ -23,6 +23,8 @@
 #include <string>
 
 #include "hmdf_global.h"
+
+namespace Hmdf {
 
 /**
  * @class Logging
@@ -53,12 +55,15 @@ class Logging {
                                 const std::string &message);
 };
 
+}  // namespace Hmdf
+
 /**
  * @def hmdf_throw_exception
  * @brief Throws an exception to the user with the file and line number sources
  * from which the exception was thrown
  * @param arg string describing the error that is being thrown
  */
-#define hmdf_throw_exception(arg) Logging::throwError(arg, __FILE__, __LINE__)
+#define hmdf_throw_exception(arg) \
+  Hmdf::Logging::throwError(arg, __FILE__, __LINE__)
 
 #endif  // ADCMOD_LOGGING_H

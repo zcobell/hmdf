@@ -26,6 +26,8 @@
 #include "date_hh/date.h"
 #include "logging.h"
 
+using namespace Hmdf;
+
 struct s_date {
  private:
   date::year_month_day dd;
@@ -198,7 +200,7 @@ void Date::set(const std::chrono::system_clock::time_point &t) {
 
 void Date::set(const Date &v) { this->set(v.time_point()); }
 
-void Date::fromSeconds(long seconds) {
+void Date::fromSeconds(long long seconds) {
   this->m_datetime = date::sys_days(c_epoch()) + std::chrono::seconds(seconds);
 }
 

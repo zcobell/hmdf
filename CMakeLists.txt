@@ -45,9 +45,8 @@ option(HMDF_PROJECT_WARNINGS "Enable compile time warnings as errors" OFF)
 if(HMDF_PROJECT_WARNINGS)
   set_project_warnings(project_warnings)
 endif()
-#include(cmake/Sanitizers.cmake)
-#enable_sanitizers(project_options)
-#include(cmake/StaticAnalyzers.cmake)
+# include(cmake/Sanitizers.cmake) enable_sanitizers(project_options)
+# include(cmake/StaticAnalyzers.cmake)
 # ##############################################################################
 
 # ##############################################################################
@@ -183,7 +182,7 @@ if(SWIG_FOUND
     execute_process(
       COMMAND ${PYTHON_EXECUTABLE} -m site --user-site
       OUTPUT_VARIABLE temp_PYTHON_SITE_DIRECTORY
-                      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
     set(PYTHON_INSTALL_DIRECTORY
         ${temp_PYTHON_SITE_DIRECTORY}
         CACHE STRING "Location where Python libraries will be installed")
@@ -278,20 +277,18 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nefis EXCLUDE_FROM_ALL)
 # HMDF Library
 # ##############################################################################
 set(HMDF_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hmdf.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/station.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/timepoint.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/date.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nefisseriesmetadata.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/hmdf.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/station.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/timepoint.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/logging.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/date.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/nefisseriesmetadata.cpp)
 
 add_library(hmdf SHARED ${HMDF_SOURCES})
 
-set(HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/hmdf.h)
-
 target_include_directories(
   hmdf
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nefis/include
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
@@ -380,7 +377,7 @@ if(SWIG_FOUND
       OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/python_hmdf_wrap.cxx
       COMMAND
         ${SWIG_EXECUTABLE} -outdir ${CMAKE_CURRENT_BINARY_DIR} -c++ -python
-        ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include
         -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
         -I${PYTHON_INCLUDE_PATH} -o
@@ -399,7 +396,7 @@ if(SWIG_FOUND
       OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/python_hmdf_wrap.cxx
       COMMAND
         ${SWIG_EXECUTABLE} -outdir ${CMAKE_CURRENT_BINARY_DIR} -c++ -python
-        ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include
         -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
         -I${PYTHON_INCLUDE_PATH} -o
@@ -411,8 +408,9 @@ if(SWIG_FOUND
 
   add_library(PyHmdf SHARED
               ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/python_hmdf_wrap.cxx)
-  target_include_directories(PyHmdf PRIVATE ${PYTHON_INCLUDE_PATH}
-                                            ${CMAKE_CURRENT_SOURCE_DIR}/include)
+  target_include_directories(
+    PyHmdf PRIVATE ${PYTHON_INCLUDE_PATH}
+                   ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include)
   target_link_libraries(PyHmdf hmdf ${PYTHON_LIBRARY})
   set_target_properties(PyHmdf PROPERTIES PREFIX "_")
   set_target_properties(PyHmdf PROPERTIES INSTALL_NAME_DIR "PyHmdf")
@@ -474,16 +472,16 @@ if(UNIX OR CYGWIN)
     # ...C++ Testing
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cxx)
 
-    set(TEST_LIST "cxx_readAdcirc.cpp" "cxx_readAdcircNetcdf.cpp"
-                  "cxx_readNefis.cpp" "cxx_readGenericNetcdf.cpp"
-                  "cxx_readImeds.cpp" )
+    set(TEST_LIST
+        "cxx_readAdcirc.cpp" "cxx_readAdcircNetcdf.cpp" "cxx_readNefis.cpp"
+        "cxx_readGenericNetcdf.cpp" "cxx_readImeds.cpp")
 
     foreach(TESTFILE ${TEST_LIST})
       get_filename_component(TESTNAME ${TESTFILE} NAME_WE)
       add_executable(${TESTNAME} ${CMAKE_SOURCE_DIR}/testing/cxx/${TESTFILE})
       add_dependencies(${TESTNAME} hmdf)
-      target_include_directories(${TESTNAME}
-                                 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+      target_include_directories(
+        ${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include)
       target_link_libraries(${TESTNAME} hmdf ${NETCDF_LIBS})
       set_target_properties(
         ${TESTNAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -522,7 +520,8 @@ if(UNIX OR CYGWIN)
             ENVIRONMENT
             "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}")
         set_property(
-          TEST ${PYTHON_TESTNAME} APPEND
+          TEST ${PYTHON_TESTNAME}
+          APPEND
           PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}")
       endif()
     endif(SWIG_FOUND)

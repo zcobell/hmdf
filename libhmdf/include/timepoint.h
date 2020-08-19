@@ -1,5 +1,5 @@
-#ifndef TIMEPOINT_H
-#define TIMEPOINT_H
+#ifndef HMDF_TIMEPOINT_H
+#define HMDF_TIMEPOINT_H
 /*------------------------------GPL---------------------------------------//
 // This file is part of HMDF.
 //
@@ -20,10 +20,13 @@
 //------------------------------------------------------------------------*/
 #include <array>
 #include <cmath>
+#include <string>
+#include <vector>
 
 #include "date.h"
 #include "hmdf_global.h"
-#include "types.h"
+
+namespace Hmdf {
 
 class Timepoint {
  public:
@@ -31,17 +34,17 @@ class Timepoint {
   HMDF_EXPORT Timepoint();
 
   /// Baseline constructors (1d, 2d, 3d)
-  HMDF_EXPORT Timepoint(const Date &d, const double v);
-  HMDF_EXPORT Timepoint(const Date &d, const double v1, const double v2);
-  HMDF_EXPORT Timepoint(const Date &d, const double v1, const double v2,
+  HMDF_EXPORT Timepoint(const Hmdf::Date &d, const double v);
+  HMDF_EXPORT Timepoint(const Hmdf::Date &d, const double v1, const double v2);
+  HMDF_EXPORT Timepoint(const Hmdf::Date &d, const double v1, const double v2,
                         const double v3);
 
   /// Generic vector constructor
-  HMDF_EXPORT Timepoint(const Date &d, HmdfVector<double> v);
+  HMDF_EXPORT Timepoint(const Hmdf::Date &d, std::vector<double> v);
 
   /// Templated constructor (c++ only) using variadic template
   template <typename... Double>
-  HMDF_EXPORT Timepoint(const Date &d, const double v1, const double v2,
+  HMDF_EXPORT Timepoint(const Hmdf::Date &d, const double v1, const double v2,
                         const double v3, const Double &... args)
       : m_date(d), m_v{v1, v2, v3, args...} {}
 
@@ -49,10 +52,10 @@ class Timepoint {
     return std::numeric_limits<double>::max();
   }
 
-  static Timepoint null() { return Timepoint(Date(), nullValue()); }
+  static Timepoint null() { return Timepoint(Hmdf::Date(), nullValue()); }
 
-  Date HMDF_EXPORT date() const;
-  void HMDF_EXPORT setDate(const Date &date);
+  Hmdf::Date HMDF_EXPORT date() const;
+  void HMDF_EXPORT setDate(const Hmdf::Date &date);
 
   double HMDF_EXPORT value(size_t index);
   double HMDF_EXPORT value();
@@ -60,34 +63,38 @@ class Timepoint {
   double HMDF_EXPORT magnitude();
   double HMDF_EXPORT direction();
 
-  void HMDF_EXPORT set(const Date &d, const double v);
-  void HMDF_EXPORT set(const Date &d, const double v1, const double v2);
-  void HMDF_EXPORT set(const Date &d, const double v1, const double v2,
+  void HMDF_EXPORT set(const Hmdf::Date &d, const double v);
+  void HMDF_EXPORT set(const Hmdf::Date &d, const double v1, const double v2);
+  void HMDF_EXPORT set(const Hmdf::Date &d, const double v1, const double v2,
                        const double v3);
-  void HMDF_EXPORT set(const Date &d, const HmdfVector<double> &v);
+  void HMDF_EXPORT set(const Hmdf::Date &d, const std::vector<double> &v);
 
   void HMDF_EXPORT setValue(const double v);
   void HMDF_EXPORT setValue(const size_t index, const double v);
   void HMDF_EXPORT setValue(const double v1, const double v2);
   void HMDF_EXPORT setValue(const double v1, const double v2, const double v3);
-  void HMDF_EXPORT setValue(const HmdfVector<double> &v);
+  void HMDF_EXPORT setValue(const std::vector<double> &v);
 
-  bool HMDF_EXPORT operator<(const Timepoint &p) const;
-  bool HMDF_EXPORT operator>(const Timepoint &p) const;
-  bool HMDF_EXPORT operator==(const Timepoint &p) const;
-  bool HMDF_EXPORT operator!=(const Timepoint &p) const;
+  bool HMDF_EXPORT operator<(const Hmdf::Timepoint &p) const;
+  bool HMDF_EXPORT operator>(const Hmdf::Timepoint &p) const;
+  bool HMDF_EXPORT operator==(const Hmdf::Timepoint &p) const;
+  bool HMDF_EXPORT operator!=(const Hmdf::Timepoint &p) const;
 
   double HMDF_EXPORT operator()(const size_t index) const;
   double HMDF_EXPORT operator[](const size_t index) const;
 
-  static bool HMDF_EXPORT dateEqual(const Timepoint &p1, const Timepoint &p2);
+  static bool HMDF_EXPORT dateEqual(const Hmdf::Timepoint &p1,
+                                    const Hmdf::Timepoint &p2);
 
   size_t HMDF_EXPORT dimension() const;
   void HMDF_EXPORT redimension(size_t n);
 
+  void HMDF_EXPORT shift(const long time, const double value);
+  void HMDF_EXPORT shift(const long time, const std::vector<double> &value);
+
 #ifndef SWIG
-  typedef typename HmdfVector<double>::iterator iterator;
-  typedef typename HmdfVector<double>::const_iterator const_iterator;
+  typedef typename std::vector<double>::iterator iterator;
+  typedef typename std::vector<double>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
   const_iterator HMDF_EXPORT cbegin() const noexcept;
@@ -95,11 +102,13 @@ class Timepoint {
   const_iterator HMDF_EXPORT cend() const noexcept;
 #endif
 
-  friend std::ostream &operator<<(std::ostream &os, const Timepoint &t);
+  friend std::ostream &operator<<(std::ostream &os, const Hmdf::Timepoint &t);
 
  private:
-  Date m_date;
-  HmdfVector<double> m_v;
+  Hmdf::Date m_date;
+  std::vector<double> m_v;
 };
+
+}  // namespace Hmdf
 
 #endif  // TIMEPOINT_H

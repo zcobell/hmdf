@@ -1,5 +1,5 @@
-#ifndef STATION_H
-#define STATION_H
+#ifndef HMDF_STATION_H
+#define HMDF_STATION_H
 /*------------------------------GPL---------------------------------------//
 // This file is part of HMDF.
 //
@@ -18,10 +18,13 @@
 // You should have received a copy of the GNU General Public License
 // along with HMDF.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------*/
+#include <string>
 #include <vector>
 
 #include "hmdf_global.h"
 #include "timepoint.h"
+
+namespace Hmdf {
 
 class Station {
  public:
@@ -43,12 +46,16 @@ class Station {
   void HMDF_EXPORT setLongitude(double longitude);
   void HMDF_EXPORT setLocation(double x, double y);
 
-  Timepoint HMDF_EXPORT operator()(const size_t index) const;
-  Timepoint HMDF_EXPORT *operator[](const size_t index);
+  Hmdf::Timepoint HMDF_EXPORT operator()(const size_t index) const;
+  Hmdf::Timepoint HMDF_EXPORT *operator[](const size_t index);
+  Hmdf::Timepoint HMDF_EXPORT cat(const size_t index) const;
+  Hmdf::Timepoint HMDF_EXPORT *at(const size_t index);
 
-  void HMDF_EXPORT push_back(const Timepoint &p);
-  void HMDF_EXPORT operator<<(const Timepoint &p);
-  void HMDF_EXPORT operator<<(const HmdfVector<Timepoint> &p);
+  void HMDF_EXPORT push_back(const Hmdf::Timepoint &p);
+  void HMDF_EXPORT operator<<(const Hmdf::Timepoint &p);
+  void HMDF_EXPORT operator<<(const std::vector<Hmdf::Timepoint> &p);
+
+  void HMDF_EXPORT deleteAt(const size_t index);
 
   void HMDF_EXPORT clear();
 
@@ -60,20 +67,23 @@ class Station {
 
   void HMDF_EXPORT allocate(size_t n);
 
-  HmdfString HMDF_EXPORT name() const;
-  void HMDF_EXPORT setName(const HmdfString &name);
+  std::string HMDF_EXPORT name() const;
+  void HMDF_EXPORT setName(const std::string &name);
 
-  size_t HMDF_EXPORT id() const;
-  void HMDF_EXPORT setId(const size_t &id);
+  size_t HMDF_EXPORT index() const;
+  void HMDF_EXPORT setIndex(const size_t &id);
 
-  HmdfString HMDF_EXPORT datum() const;
-  void HMDF_EXPORT setDatum(const HmdfString &datum);
+  std::string HMDF_EXPORT datum() const;
+  void HMDF_EXPORT setDatum(const std::string &datum);
 
-  HmdfString HMDF_EXPORT units() const;
-  void HMDF_EXPORT setUnits(const HmdfString &units);
+  std::string HMDF_EXPORT units() const;
+  void HMDF_EXPORT setUnits(const std::string &units);
 
-  HmdfString HMDF_EXPORT timezone() const;
-  void HMDF_EXPORT setTimezone(const HmdfString &timezone);
+  std::string HMDF_EXPORT timezone() const;
+  void HMDF_EXPORT setTimezone(const std::string &timezone);
+
+  std::string id() const;
+  void setId(const std::string &id);
 
   size_t HMDF_EXPORT dimension() const;
 
@@ -85,34 +95,44 @@ class Station {
 
   void HMDF_EXPORT sanitize();
 
-  size_t HMDF_EXPORT nNotNull(size_t index = 0) const;
-  double HMDF_EXPORT sum(size_t index = 0) const;
-  double HMDF_EXPORT mean(size_t index = 0) const;
-  double HMDF_EXPORT median(size_t index = 0) const;
-  double HMDF_EXPORT max(size_t index = 0) const;
-  double HMDF_EXPORT min(size_t index = 0) const;
-  double HMDF_EXPORT range(size_t index = 0) const;
+  void HMDF_EXPORT shift(const long time, const double value);
+
+  size_t HMDF_EXPORT nNotNull(const size_t index = 0) const;
+  double HMDF_EXPORT sum(const size_t index = 0) const;
+  double HMDF_EXPORT mean(const size_t index = 0) const;
+  double HMDF_EXPORT median(const size_t index = 0) const;
+  double HMDF_EXPORT max(const size_t index = 0) const;
+  double HMDF_EXPORT min(const size_t index = 0) const;
+  double HMDF_EXPORT range(const size_t index = 0) const;
+  void HMDF_EXPORT minmax(double &min, double &max,
+                          const size_t index = 0) const;
 
 #ifndef SWIG
-  typedef typename HmdfVector<Timepoint>::iterator iterator;
-  typedef typename HmdfVector<Timepoint>::const_iterator const_iterator;
+  typedef typename std::vector<Hmdf::Timepoint>::iterator iterator;
+  typedef typename std::vector<Hmdf::Timepoint>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
+  const_iterator HMDF_EXPORT begin() const noexcept;
   const_iterator HMDF_EXPORT cbegin() const noexcept;
   iterator HMDF_EXPORT end() noexcept;
+  const_iterator HMDF_EXPORT end() const noexcept;
   const_iterator HMDF_EXPORT cend() const noexcept;
+
+  Hmdf::Timepoint HMDF_EXPORT front() noexcept;
+  Hmdf::Timepoint HMDF_EXPORT back() noexcept;
 #endif
 
   friend std::ostream HMDF_EXPORT &operator<<(std::ostream &os,
-                                              const Station *s);
+                                              const Hmdf::Station *s);
 
-private:
-  HmdfVector<Timepoint> m_data;
-  HmdfString m_name;
-  HmdfString m_datum;
-  HmdfString m_units;
-  HmdfString m_timezone;
-  size_t m_id;
+ private:
+  std::vector<Hmdf::Timepoint> m_data;
+  std::string m_name;
+  std::string m_datum;
+  std::string m_units;
+  std::string m_timezone;
+  std::string m_id;
+  size_t m_index;
   double m_x;
   double m_y;
   unsigned int m_epsg;
@@ -121,5 +141,7 @@ private:
   unsigned int m_epsg_original;
   unsigned char m_dimension;
 };
+
+}  // namespace Hmdf
 
 #endif  // STATION_H

@@ -26,12 +26,14 @@
 #include "boost/format.hpp"
 #include "ezproj.h"
 
+using namespace Hmdf;
+
 Station::Station(const unsigned char dimension)
     : m_name("noname"),
       m_datum("none"),
       m_units("none"),
       m_timezone("none"),
-      m_id(0),
+      m_index(0),
       m_x(0.0),
       m_y(0.0),
       m_epsg(4326),
@@ -46,7 +48,7 @@ Station::Station(const size_t id, const double x, const double y,
       m_datum("none"),
       m_units("none"),
       m_timezone("none"),
-      m_id(id),
+      m_index(id),
       m_x(x),
       m_y(y),
       m_epsg(epsg),
@@ -81,18 +83,38 @@ Timepoint *Station::operator[](const size_t index) {
   return &m_data[index];
 }
 
+Timepoint Station::cat(const size_t index) const {
+  assert(index < m_data.size());
+  return m_data[index];
+}
+
+Timepoint *Station::at(const size_t index) {
+  assert(index < m_data.size());
+  return &m_data[index];
+}
+
 void Station::push_back(const Timepoint &p) { this->m_data.push_back(p); }
 void Station::operator<<(const Timepoint &p) { this->push_back(p); }
 
-HmdfString Station::timezone() const { return m_timezone; }
+std::string Station::id() const { return m_id; }
 
-void Station::setTimezone(const HmdfString &timezone) { m_timezone = timezone; }
+void Station::setId(const std::string &id) { m_id = id; }
 
-HmdfString Station::units() const { return m_units; }
+std::string Station::timezone() const { return m_timezone; }
 
-void Station::setUnits(const HmdfString &units) { m_units = units; }
-void Station::operator<<(const HmdfVector<Timepoint> &p) {
+void Station::setTimezone(const std::string &timezone) {
+  m_timezone = timezone;
+}
+
+std::string Station::units() const { return m_units; }
+
+void Station::setUnits(const std::string &units) { m_units = units; }
+void Station::operator<<(const std::vector<Timepoint> &p) {
   this->m_data.insert(this->m_data.end(), p.begin(), p.end());
+}
+
+void Station::deleteAt(const size_t index) {
+  this->m_data.erase(this->m_data.begin() + index);
 }
 
 void Station::clear() { this->m_data.clear(); }
@@ -116,14 +138,14 @@ int Station::reproject(int epsg) {
 
 void Station::allocate(size_t n) { this->m_data.reserve(n); }
 
-HmdfString Station::name() const { return this->m_name; }
-void Station::setName(const HmdfString &name) { this->m_name = name; }
+std::string Station::name() const { return this->m_name; }
+void Station::setName(const std::string &name) { this->m_name = name; }
 
-size_t Station::id() const { return this->m_id; }
-void Station::setId(const size_t &id) { this->m_id = id; }
+size_t Station::index() const { return this->m_index; }
+void Station::setIndex(const size_t &id) { this->m_index = id; }
 
-HmdfString Station::datum() const { return this->m_datum; }
-void Station::setDatum(const HmdfString &datum) { this->m_datum = datum; }
+std::string Station::datum() const { return this->m_datum; }
+void Station::setDatum(const std::string &datum) { this->m_datum = datum; }
 
 size_t Station::dimension() const {
   if (!this->m_data.empty()) {
@@ -143,7 +165,7 @@ double Station::meanDt() const {
   return dt / static_cast<double>(this->m_data.size() - 1);
 }
 
-std::ostream &operator<<(std::ostream &os, const Station *s) {
+std::ostream &Hmdf::operator<<(std::ostream &os, const Hmdf::Station *s) {
   if (s->name() == "noname") {
     os << "Station: " << s->id() << std::endl;
   } else {
@@ -173,12 +195,12 @@ std::ostream &operator<<(std::ostream &os, const Station *s) {
   os << "         Length: " << s->size() << std::endl;
   os << "  Mean Timestep: " << s->meanDt() << std::endl;
 
-  HmdfString mx("empty");
-  HmdfString mn("empty");
-  HmdfString me("empty");
-  HmdfString nl("empty");
-  HmdfString dateStart("empty");
-  HmdfString dateEnd("empty");
+  std::string mx("empty");
+  std::string mn("empty");
+  std::string me("empty");
+  std::string nl("empty");
+  std::string dateStart("empty");
+  std::string dateEnd("empty");
 
   if (s->m_data.size() > 0) {
     dateStart = s->m_data.front().date().toString();
@@ -216,7 +238,7 @@ void Station::sanitize() {
                      this->m_data.end());
 }
 
-double Station::sum(size_t index) const {
+double Station::sum(const size_t index) const {
   double sum = 0.0;
   for (auto &s : this->m_data) {
     if (s[index] != Timepoint::nullValue()) {
@@ -226,7 +248,7 @@ double Station::sum(size_t index) const {
   return sum;
 }
 
-size_t Station::nNotNull(size_t index) const {
+size_t Station::nNotNull(const size_t index) const {
   size_t n = 0;
   for (auto &s : this->m_data) {
     if (s[index] != Timepoint::nullValue()) {
@@ -236,12 +258,12 @@ size_t Station::nNotNull(size_t index) const {
   return n;
 }
 
-double Station::mean(size_t index) const {
+double Station::mean(const size_t index) const {
   return this->sum(index) / static_cast<double>(this->nNotNull());
 }
 
-double Station::median(size_t index) const {
-  HmdfVector<double> v;
+double Station::median(const size_t index) const {
+  std::vector<double> v;
   v.reserve(this->nNotNull(index));
   for (auto &s : this->m_data) {
     if (s[index] != Timepoint::nullValue()) {
@@ -253,7 +275,7 @@ double Station::median(size_t index) const {
                            : v[v.size() / 2];
 }
 
-double Station::min(size_t index) const {
+double Station::min(const size_t index) const {
   double min = std::numeric_limits<double>::max();
   for (auto &s : this->m_data) {
     if (s[index] != Timepoint::nullValue()) {
@@ -263,7 +285,7 @@ double Station::min(size_t index) const {
   return min;
 }
 
-double Station::max(size_t index) const {
+double Station::max(const size_t index) const {
   double max = -std::numeric_limits<double>::max();
   for (auto &s : this->m_data) {
     if (s[index] != Timepoint::nullValue()) {
@@ -277,7 +299,23 @@ double Station::range(size_t index) const {
   return this->max(index) - this->min(index);
 }
 
+void Station::minmax(double &min, double &max, const size_t index) const {
+  min = std::numeric_limits<double>::max();
+  max = -std::numeric_limits<double>::max();
+  for (auto &s : this->m_data) {
+    if (s[index] != Timepoint::nullValue()) {
+      min = std::min(min, s[index]);
+      max = std::max(max, s[index]);
+    }
+  }
+  return;
+}
+
 Station::iterator Station::begin() noexcept { return this->m_data.begin(); }
+
+Station::const_iterator Station::begin() const noexcept {
+  return this->m_data.begin();
+}
 
 Station::const_iterator Station::cbegin() const noexcept {
   return this->m_data.cbegin();
@@ -285,6 +323,20 @@ Station::const_iterator Station::cbegin() const noexcept {
 
 Station::iterator Station::end() noexcept { return this->m_data.end(); }
 
+Station::const_iterator Station::end() const noexcept {
+  return this->m_data.end();
+}
+
 Station::const_iterator Station::cend() const noexcept {
   return this->m_data.cend();
+}
+
+Timepoint Station::front() noexcept { return this->m_data.front(); }
+
+Timepoint Station::back() noexcept { return this->m_data.back(); }
+
+void Station::shift(const long time, const double value) {
+  for (auto &t : this->m_data) {
+    t.shift(time, value);
+  }
 }

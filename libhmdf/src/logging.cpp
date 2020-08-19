@@ -21,6 +21,8 @@
 #include <stdexcept>
 #include <string>
 
+using namespace Hmdf;
+
 static const std::string c_errorHeading("[HMDF ERROR]: ");
 static const std::string c_warningHeading("[HMDF WARNING]: ");
 static const std::string c_logHeading("[HMDF INFO]: ");
