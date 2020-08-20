@@ -188,19 +188,32 @@ class Date {
 };
 }  // namespace Hmdf
 
-template <typename T>
+#ifndef SWIG
+
+template <typename DateType>
+using is_valid_hmdfdate = typename std::enable_if<
+    std::is_arithmetic<DateType>::value ||
+    std::is_same<Hmdf::Date::milliseconds, DateType>::value ||
+    std::is_same<Hmdf::Date::seconds, DateType>::value ||
+    std::is_same<Hmdf::Date::minutes, DateType>::value ||
+    std::is_same<Hmdf::Date::hours, DateType>::value ||
+    std::is_same<Hmdf::Date::days, DateType>::value ||
+    std::is_same<Hmdf::Date::weeks, DateType>::value ||
+    std::is_same<Hmdf::Date::months, DateType>::value ||
+    std::is_same<Hmdf::Date::years, DateType>::value>::type;
+
+template <typename T, typename = is_valid_hmdfdate<T>>
 Hmdf::Date operator+(Hmdf::Date lhs, const T &rhs) {
   lhs += rhs;
   return lhs;
 }
 
-template <typename T>
+template <typename T, typename = is_valid_hmdfdate<T>>
 Hmdf::Date operator-(Hmdf::Date lhs, const T &rhs) {
   lhs -= rhs;
   return lhs;
 }
 
-#ifndef SWIG
 template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const short &);
 template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const int &);
 template Hmdf::Date HMDF_EXPORT operator+(Hmdf::Date, const long &);
