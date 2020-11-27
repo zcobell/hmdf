@@ -26,6 +26,14 @@ include(CMakePackageConfigHelpers)
 include(cmake/StandardProjectSettings.cmake)
 include(cmake/PreventInSourceBuilds.cmake)
 
+option(HMDF_BUILD_SHARED "Build Shared Libraries" ON)
+option(HMDF_DISABLE_PYTHON "Disable Python Libraries" OFF)
+if(HMDF_BUILD_SHARED)
+  set(HMDF_LIBRARY_TYPE SHARED)
+else()
+  set(HMDF_LIBRARY_TYPE STATIC)
+endif()
+
 add_library(project_options INTERFACE)
 target_compile_features(project_options INTERFACE cxx_std_11)
 
@@ -77,7 +85,6 @@ endif(HMDF_COVERAGE)
 # C++ 11/14 Check
 # ##############################################################################
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++14" COMPILER_SUPPORTS_CXX14)
 check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if(COMPILER_SUPPORTS_CXX11)
   set(CMAKE_CXX_STANDARD 11)
@@ -135,6 +142,7 @@ if(NOT Boost_FOUND OR PACKAGE_VERSION_UNSUITABLE)
   message(STATUS "Using included Boost Version: 1.73.0")
   set(Boost_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/boost_1_73_0)
 endif()
+find_package(PROJ4 REQUIRED VERSION_GREATER 6)
 # ##############################################################################
 
 # ##############################################################################
@@ -149,61 +157,58 @@ endif()
 # ##############################################################################
 # SET THE LOCATION OF TEMPORARY STATIC LIBS
 # ##############################################################################
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/CMakeFiles)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles)
 # ##############################################################################
 
 # ##############################################################################
 # SWIG/PYTHON/PERL Note: This will attempt to default to Python3 Give the flag
 # -DPYTHON2=ON to force Python2 usage
 # ##############################################################################
-if(${PYTHON2})
-  message(STATUS "CMake will attempt to use the Python2 interface only")
-  find_package(PythonInterp 2.7 REQUIRED)
-  find_package(PythonLibs 2.7 REQUIRED)
-  set(PYTHONTYPE 2)
-else()
-  find_package(PythonInterp 3.0)
-  find_package(PythonLibs 3.0)
-  if(NOT PythonLibs_FOUND AND NOT PythonInterp_FOUND)
-    find_package(PythonInterp 2.7)
-    find_package(PythonLibs 2.7)
+if(NOT HMDF_DISABLE_PYTHON)
+  if(${PYTHON2})
+    message(STATUS "CMake will attempt to use the Python2 interface only")
+    find_package(PythonInterp 2.7 REQUIRED)
+    find_package(PythonLibs 2.7 REQUIRED)
     set(PYTHONTYPE 2)
   else()
-    set(PYTHONTYPE 3)
+    find_package(PythonInterp 3.0)
+    find_package(PythonLibs 3.0)
+    if(NOT PythonLibs_FOUND AND NOT PythonInterp_FOUND)
+      find_package(PythonInterp 2.7)
+      find_package(PythonLibs 2.7)
+      set(PYTHONTYPE 2)
+    else()
+      set(PYTHONTYPE 3)
+    endif()
+  endif()
+
+  find_package(SWIG 3.0)
+  if(SWIG_FOUND
+     AND PythonLibs_FOUND
+     AND PythonInterp_FOUND)
+    include(${SWIG_USE_FILE})
+    if(PythonLibs_FOUND)
+      execute_process(
+        COMMAND ${PYTHON_EXECUTABLE} -m site --user-site
+        OUTPUT_VARIABLE temp_PYTHON_SITE_DIRECTORY
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+      set(PYTHON_INSTALL_DIRECTORY
+          ${temp_PYTHON_SITE_DIRECTORY}
+          CACHE STRING "Location where Python libraries will be installed")
+      mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
+    else(PythonLibs_FOUND)
+      set(PYTHON_INSTALL_DIRECTORY
+          "PYTHON_INSTALL_DIRECTORY-NOTFOUND"
+          CACHE STRING "Location where Python libraries will be installed")
+    endif(PythonLibs_FOUND)
+
+    # FIND_PACKAGE(PerlLibs) IF(PerlLibs_FOUND) OPTION(TEST_PERL "Test the perl
+    # build for SWIG. Note: Does not work yet" OFF) ENDIF(PerlLibs_FOUND)
+  else()
+    message(
+      WARNING "SWIG/Python libraries could not be found. PyHmdf disabled.")
   endif()
 endif()
-
-find_package(SWIG 3.0)
-if(SWIG_FOUND
-   AND PythonLibs_FOUND
-   AND PythonInterp_FOUND)
-  include(${SWIG_USE_FILE})
-  if(PythonLibs_FOUND)
-    execute_process(
-      COMMAND ${PYTHON_EXECUTABLE} -m site --user-site
-      OUTPUT_VARIABLE temp_PYTHON_SITE_DIRECTORY
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    set(PYTHON_INSTALL_DIRECTORY
-        ${temp_PYTHON_SITE_DIRECTORY}
-        CACHE STRING "Location where Python libraries will be installed")
-    mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
-  else(PythonLibs_FOUND)
-    set(PYTHON_INSTALL_DIRECTORY
-        "PYTHON_INSTALL_DIRECTORY-NOTFOUND"
-        CACHE STRING "Location where Python libraries will be installed")
-  endif(PythonLibs_FOUND)
-
-  # FIND_PACKAGE(PerlLibs) IF(PerlLibs_FOUND) OPTION(TEST_PERL "Test the perl
-  # build for SWIG. Note: Does not work yet" OFF) ENDIF(PerlLibs_FOUND)
-else(
-  SWIG_FOUND
-  AND PythonLibs_FOUND
-  AND PythonInterp_FOUND)
-  message(WARNING "SWIG/Python libraries could not be found. PyHmdf disabled.")
-endif(
-  SWIG_FOUND
-  AND PythonLibs_FOUND
-  AND PythonInterp_FOUND)
 # ##############################################################################
 
 # ##############################################################################
@@ -242,7 +247,7 @@ else(WIN32)
 			return 0;
 		}
 	")
-    file(WRITE "${CMAKE_BINARY_DIR}/CMakeFiles/netcdf_c_check.c"
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/netcdf_c_check.c"
          "${netcdf_c_code}")
     try_compile(
       NC_DEFLATE_FOUND "${CMAKE_CURRENT_BINARY_DIR}"
@@ -269,7 +274,6 @@ endif(WIN32)
 # ##############################################################################
 # External Library
 # ##############################################################################
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj EXCLUDE_FROM_ALL)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nefis EXCLUDE_FROM_ALL)
 # ##############################################################################
 
@@ -282,20 +286,26 @@ set(HMDF_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/timepoint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/logging.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/date.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/projection.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/constants.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/src/nefisseriesmetadata.cpp)
 
-add_library(hmdf SHARED ${HMDF_SOURCES})
+add_library(hmdf ${HMDF_LIBRARY_TYPE} ${HMDF_SOURCES})
+
+if(HMDF_BUILD_SHARED)
+  set_target_properties(hmdf PROPERTIES CXX_VISIBILITY_PRESET hidden)
+endif()
 
 target_include_directories(
   hmdf
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nefis/include
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
-          ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
+          ${PROJ_INCLUDE_DIR}
           ${Boost_INCLUDE_DIRS}
           ${NETCDF_INCLUDE_DIR})
 
-add_dependencies(hmdf ezproj nefis)
+add_dependencies(hmdf nefis)
 
 target_compile_definitions(hmdf PRIVATE GIT_VERSION="${GIT_VERSION}")
 target_compile_definitions(hmdf PRIVATE HMDF_LIBRARY)
@@ -329,7 +339,8 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmdfConfigVersion.cmake
 set_target_properties(hmdf PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)
 set_target_properties(hmdf PROPERTIES CMAKE_CXX_INLINES_HIDDEN YES)
 
-target_link_libraries(hmdf ezproj nefis project_warnings project_options)
+target_link_libraries(hmdf nefis project_warnings project_options
+                      ${PROJ_LIBRARY})
 
 if(WIN32)
   link_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/netcdf/libs_vc64)
@@ -349,7 +360,8 @@ endif(APPLE)
 # ##############################################################################
 # PyHmdf Library
 # ##############################################################################
-if(SWIG_FOUND
+if(NOT HMDF_DISABLE_PYTHON
+   AND SWIG_FOUND
    AND PythonLibs_FOUND
    AND PythonInterp_FOUND)
 
@@ -378,9 +390,7 @@ if(SWIG_FOUND
       COMMAND
         ${SWIG_EXECUTABLE} -outdir ${CMAKE_CURRENT_BINARY_DIR} -c++ -python
         ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include
-        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
-        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
-        -I${PYTHON_INCLUDE_PATH} -o
+        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty -I${PYTHON_INCLUDE_PATH} -o
         ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/python_hmdf_wrap.cxx.1
         ${CMAKE_CURRENT_SOURCE_DIR}/python/hmdf.i
       COMMAND
@@ -397,9 +407,7 @@ if(SWIG_FOUND
       COMMAND
         ${SWIG_EXECUTABLE} -outdir ${CMAKE_CURRENT_BINARY_DIR} -c++ -python
         ${PYTHONFLAG} -I${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include
-        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
-        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ezproj/src
-        -I${PYTHON_INCLUDE_PATH} -o
+        -I${CMAKE_CURRENT_SOURCE_DIR}/thirdparty -I${PYTHON_INCLUDE_PATH} -o
         ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/python_hmdf_wrap.cxx
         ${CMAKE_CURRENT_SOURCE_DIR}/python/hmdf.i
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -458,10 +466,7 @@ if(SWIG_FOUND
   elseif(APPLE)
     set_target_properties(PyHmdf PROPERTIES SUFFIX ".so")
   endif(WIN32)
-endif(
-  SWIG_FOUND
-  AND PythonLibs_FOUND
-  AND PythonInterp_FOUND)
+endif()
 # ##############################################################################
 
 # ##############################################################################
@@ -478,7 +483,8 @@ if(UNIX OR CYGWIN)
 
     foreach(TESTFILE ${TEST_LIST})
       get_filename_component(TESTNAME ${TESTFILE} NAME_WE)
-      add_executable(${TESTNAME} ${CMAKE_SOURCE_DIR}/testing/cxx/${TESTFILE})
+      add_executable(${TESTNAME}
+                     ${CMAKE_CURRENT_SOURCE_DIR}/testing/cxx/${TESTFILE})
       add_dependencies(${TESTNAME} hmdf)
       target_include_directories(
         ${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include)
@@ -490,7 +496,7 @@ if(UNIX OR CYGWIN)
       add_test(
         NAME TEST_${TESTNAME}
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/cxx/${TESTNAME}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/testing)
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testing)
       if(CYGWIN)
         set_tests_properties(
           TEST_${TESTNAME}
@@ -512,7 +518,7 @@ if(UNIX OR CYGWIN)
         add_test(
           NAME ${PYTHON_TESTNAME}
           COMMAND ${PYTHON_EXECUTABLE}
-                  ${CMAKE_SOURCE_DIR}/testing/python/adcirc_read.py
+                  ${CMAKE_CURRENT_SOURCE_DIR}/testing/python/adcirc_read.py
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
         set_property(
           TEST ${PYTHON_TESTNAME}

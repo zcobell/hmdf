@@ -115,7 +115,7 @@ static BInt4   first_tree     = TRUE;
 BInt4   daf_fds;
 BInt4   dat_fds;
 BInt4   def_fds;
-BInt4   nefis_flush;
+BInt4   oc_nefis_flush;
 BInt4   nr_nefis_files;
 BInt4   cap_nefis_files;
 BInt4   incr_nefis_files;
@@ -1027,7 +1027,7 @@ BInt4 close_nefis_files ( BInt4 * fd_nefis )
   {
     if (nefis[set].dat_fds != -1)
     {
-      if ( nefis_flush == TRUE )
+      if ( oc_nefis_flush == TRUE )
       {
         nefis_errno = GP_flush_hash( nefis[set].dat_fds, set);
         if ( nefis_errno != 0 )
@@ -1054,7 +1054,7 @@ BInt4 close_nefis_files ( BInt4 * fd_nefis )
  */
     if (nefis[set].def_fds != -1)
     {
-      if ( nefis_flush == TRUE )
+      if ( oc_nefis_flush == TRUE )
       {
         nefis_errno = GP_flush_hash( nefis[set].def_fds, set);
         if ( nefis_errno != 0 )
@@ -1078,7 +1078,7 @@ BInt4 close_nefis_files ( BInt4 * fd_nefis )
   }
   else if (nefis[set].one_file == TRUE && nefis[set].daf_fds != -1 )
   {
-    if ( nefis_flush == TRUE )
+    if ( oc_nefis_flush == TRUE )
     {
       nefis_errno = GP_flush_hash( nefis[set].daf_fds, set);
       if ( nefis_errno != 0 )
@@ -1233,7 +1233,7 @@ BInt4 open_nefis_file( BText   file_name  ,
  *    create the file
  */
       acType      = FILE_CREATE;
-      nefis_flush = TRUE;
+      oc_nefis_flush = TRUE;
       *new_files  = TRUE;
     }
     else
@@ -1241,7 +1241,7 @@ BInt4 open_nefis_file( BText   file_name  ,
 /*
  *    only read the file
  */
-      nefis_flush   = FALSE;
+      oc_nefis_flush   = FALSE;
       *new_files    = FALSE;
       nefis_errcnt += 1;
       nefis_errno   = 8031;
@@ -1262,7 +1262,7 @@ BInt4 open_nefis_file( BText   file_name  ,
  *    update existing file (read and write, random access)
  */
       acType      = FILE_READ_WRITE;
-      nefis_flush = TRUE;
+      oc_nefis_flush = TRUE;
       *new_files  = FALSE;
     }
     else if ( access_type == 'r' )
@@ -1271,7 +1271,7 @@ BInt4 open_nefis_file( BText   file_name  ,
  *    only read the file
  */
       acType      = FILE_READ_ONLY;
-      nefis_flush = FALSE;
+      oc_nefis_flush = FALSE;
       *new_files  = FALSE;
     }
     else if ( access_type == 'c' )
@@ -1280,7 +1280,7 @@ BInt4 open_nefis_file( BText   file_name  ,
  *    remove existing file and create new file
  */
       acType      = FILE_CREATE;
-      nefis_flush = TRUE;
+      oc_nefis_flush = TRUE;
       *new_files  = TRUE;
     }
     else

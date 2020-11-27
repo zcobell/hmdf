@@ -56,9 +56,9 @@
 #include "nefis.h" /* needed for definition of LENGTH_ERROR_MESSAGE */
 #include "nef-def.h"
 
-BInt4 nefis_errno;
-BInt4 nefis_errcnt;
-BChar error_text[LENGTH_ERROR_MESSAGE+1];
+BInt4 er_nefis_errno;
+BInt4 er_nefis_errcnt;
+BChar er_error_text[LENGTH_ERROR_MESSAGE+1];
 
 /*
  *----------------------------------------------------------------------
@@ -101,17 +101,17 @@ BInt4 nefis_error ( BInt4 print_flag  , /* I,print error at stderr (yes==1) */
 
   if ( print_flag != 0 )
   {
-    if ( nefis_errno != 0 )
+    if ( er_nefis_errno != 0 )
     {
-      fprintf(fp_out, "\nNEFIS message %d:\n", nefis_errno);
-      fprintf(fp_out, " %s\n", error_text );
-      error_text[0] = '\0';
-      nefis_errno   = 0;
+      fprintf(fp_out, "\nNEFIS message %d:\n", er_nefis_errno);
+      fprintf(fp_out, " %s\n", er_error_text );
+      er_error_text[0] = '\0';
+      er_nefis_errno   = 0;
     }
-    else if ( nefis_errcnt != 0 )
+    else if ( er_nefis_errcnt != 0 )
     {
       fprintf(fp_out,"\nThe total number of NEFIS errors/warnings is %d\n",
-                     nefis_errcnt);
+                     er_nefis_errcnt);
     }
     else
     {
@@ -120,18 +120,18 @@ BInt4 nefis_error ( BInt4 print_flag  , /* I,print error at stderr (yes==1) */
   }
   else
   {
-    if ( nefis_errno != 0 )
+    if ( er_nefis_errno != 0 )
     {
-      sprintf(error_string, "\nNEFIS message %d:\n", nefis_errno);
-      strcat (error_string, error_text);
-      error_text[0] = '\0';
-      nefis_errno   = 0;
+      sprintf(error_string, "\nNEFIS message %d:\n", er_nefis_errno);
+      strcat (error_string, er_error_text);
+      er_error_text[0] = '\0';
+      er_nefis_errno   = 0;
     }
-    else if ( nefis_errcnt != 0 )
+    else if ( er_nefis_errcnt != 0 )
     {
       sprintf(error_string,
               "The total number of NEFIS errors/warnings is %d",
-              nefis_errcnt);
+              er_nefis_errcnt);
     }
     else
     {

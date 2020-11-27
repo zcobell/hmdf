@@ -24,7 +24,7 @@
 #include <set>
 
 #include "boost/format.hpp"
-#include "ezproj.h"
+#include "projection.h"
 
 using namespace Hmdf;
 
@@ -129,11 +129,10 @@ void Station::setEpsg(int epsg) {
 }
 
 int Station::reproject(int epsg) {
-  Ezproj pj;
-  bool ill;
   this->m_epsg = epsg;
-  return pj.transform(this->m_epsg_original, this->m_epsg, this->m_x_original,
-                      this->m_y_original, this->m_x, this->m_y, ill);
+  return Projection::transform(this->m_epsg_original, this->m_epsg,
+                               this->m_x_original, this->m_y_original,
+                               this->m_x, this->m_y);
 }
 
 void Station::allocate(size_t n) { this->m_data.reserve(n); }

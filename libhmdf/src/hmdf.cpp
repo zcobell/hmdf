@@ -97,7 +97,9 @@ void HmdfData::sanitize() {
   }
 }
 
-HmdfData::iterator HmdfData::begin() noexcept { return this->m_stations.begin(); }
+HmdfData::iterator HmdfData::begin() noexcept {
+  return this->m_stations.begin();
+}
 
 HmdfData::const_iterator HmdfData::cbegin() const noexcept {
   return this->m_stations.cbegin();
@@ -133,6 +135,11 @@ Station *HmdfData::station(size_t index) {
 int HmdfData::setStation(size_t index, Station &s) {
   assert(index < this->m_stations.size());
   this->m_stations[index] = s;
+  return 0;
+}
+
+int HmdfData::moveStation(Station s) {
+  this->m_stations.push_back(std::move(s));
   return 0;
 }
 

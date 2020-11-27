@@ -29,7 +29,7 @@ namespace Hmdf {
 
 class HmdfData {
  public:
-  HMDF_EXPORT HmdfData(const std::string &filename = std::string(),
+  HMDF_EXPORT explicit HmdfData(const std::string &filename = std::string(),
                        const Hmdf::Date &coldstart = Hmdf::Date(),
                        const std::string &stationFile = std::string());
 
@@ -38,24 +38,25 @@ class HmdfData {
 
   int HMDF_EXPORT readNefisValue(const std::string &var, size_t layer = 0);
 
-  size_t HMDF_EXPORT nStations() const;
+  [[nodiscard]] size_t HMDF_EXPORT nStations() const;
 
-  std::vector<std::string> HMDF_EXPORT headerData() const;
+  [[nodiscard]] std::vector<std::string> HMDF_EXPORT headerData() const;
   void HMDF_EXPORT setHeaderData(const std::vector<std::string> &headerData);
 
-  bool HMDF_EXPORT success() const;
+  [[nodiscard]] bool HMDF_EXPORT success() const;
 
-  bool HMDF_EXPORT null() const;
+  [[nodiscard]] bool HMDF_EXPORT null() const;
 
-  int HMDF_EXPORT dimension() const;
+  [[nodiscard]] int HMDF_EXPORT dimension() const;
 
   Hmdf::Station HMDF_EXPORT *station(size_t index);
 
   int HMDF_EXPORT setStation(size_t index, Hmdf::Station &s);
 
   int HMDF_EXPORT addStation(const Hmdf::Station &s);
+  int HMDF_EXPORT moveStation(Hmdf::Station s);
 
-  void HMDF_EXPORT deleteStation(const size_t index);
+  void HMDF_EXPORT deleteStation(size_t index);
 
   int HMDF_EXPORT reproject(int epsg);
 
@@ -74,18 +75,18 @@ class HmdfData {
   typedef typename std::vector<Hmdf::Station>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
-  const_iterator HMDF_EXPORT cbegin() const noexcept;
+  [[nodiscard]] const_iterator HMDF_EXPORT cbegin() const noexcept;
   iterator HMDF_EXPORT end() noexcept;
-  const_iterator HMDF_EXPORT cend() const noexcept;
+  [[nodiscard]] const_iterator HMDF_EXPORT cend() const noexcept;
 #endif
 
-  std::string HMDF_EXPORT getFilename() const;
+  [[nodiscard]] std::string HMDF_EXPORT getFilename() const;
   void HMDF_EXPORT setFilename(const std::string &filename);
 
-  Hmdf::Date HMDF_EXPORT getColdstart() const;
+  [[nodiscard]] Hmdf::Date HMDF_EXPORT getColdstart() const;
   void HMDF_EXPORT setColdstart(const Hmdf::Date &coldstart);
 
-  std::string HMDF_EXPORT getStationFile() const;
+  [[nodiscard]] std::string HMDF_EXPORT getStationFile() const;
   void HMDF_EXPORT setStationFile(const std::string &stationFile);
 
   void HMDF_EXPORT bounds(Hmdf::Date &begin, Hmdf::Date &end, double &min,
@@ -111,13 +112,13 @@ class HmdfData {
                                     int &month, int &day, int &hour,
                                     int &minute, int &second, double &value);
   static FileType checkNetcdfType(const std::string &filename);
-  static std::string checkTextAttLenAndReturn(const int ncid, const int varid,
+  static std::string checkTextAttLenAndReturn(int ncid, int varid,
                                               const std::string &att);
-  static Station readGenericNetcdfStation(const int ncid, const int idx,
+  static Station readGenericNetcdfStation(int ncid, int idx,
                                           const std::vector<double> &xcoor,
                                           const std::vector<double> &ycoor,
                                           const std::string &stationNames,
-                                          const size_t namelen, const int epsg);
+                                          size_t namelen, int epsg);
   static Date string2date(const std::string &str);
 
   int readAdcircAscii();

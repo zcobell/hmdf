@@ -27,7 +27,6 @@
 #include <vector>
 
 #include "hmdf_global.h"
-
 namespace Hmdf {
 
 class Date {
