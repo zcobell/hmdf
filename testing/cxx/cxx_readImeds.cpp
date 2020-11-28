@@ -5,6 +5,9 @@ int main(){
     h.read();
     h.station(0)->show();
 
+    h.station(0)->reproject(26915);
+    h.station(0)->show();
+
     return 0;
 
 }

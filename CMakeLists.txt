@@ -142,7 +142,49 @@ if(NOT Boost_FOUND OR PACKAGE_VERSION_UNSUITABLE)
   message(STATUS "Using included Boost Version: 1.73.0")
   set(Boost_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/boost_1_73_0)
 endif()
-find_package(PROJ4 REQUIRED VERSION_GREATER 6)
+
+set(BUILD_TESTING
+    OFF
+    CACHE BOOL "Build PROJ tests")
+set(ENABLE_CURL
+    OFF
+    CACHE BOOL "Enable CURL for use with PROJ")
+set(BUILD_PROJSYNC
+    OFF
+    CACHE BOOL "Build PROJSYNC")
+set(BUILD_SHARED_LIBS
+    OFF
+    CACHE BOOL "Build shared PROJ libs")
+set(BUILD_CCT
+    OFF
+    CACHE BOOL "Build PROJ CCT")
+set(BUILD_CS2CS
+    OFF
+    CACHE BOOL "Build PROJ CS2CS")
+set(BUILD_GEOD
+    OFF
+    CACHE BOOL "Build PROJ GEOD")
+set(BUILD_PROJINFO
+    OFF
+    CACHE BOOL "Build PROJ PROJINFO")
+set(BUILD_GIE
+    OFF
+    CACHE BOOL "Build PROJ GIE")
+set(BUILD_PROJ
+    OFF
+    CACHE BOOL "Build PROJ binary")
+mark_as_advanced(
+  BUILD_TESTING
+  ENABLE_CURL
+  BUILD_PROJSYNC
+  BUILD_SHARED_LIBS
+  BUILD_CCT
+  BUILD_CS2CS
+  BUILD_GEOD
+  BUILD_PROJINFO
+  BUILD_GIE
+  BUILD_PROJ)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/proj-7.2.0)
 # ##############################################################################
 
 # ##############################################################################
@@ -301,11 +343,11 @@ target_include_directories(
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libhmdf/include
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nefis/include
           ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
-          ${PROJ_INCLUDE_DIR}
+          ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/proj-7.2.0/src
           ${Boost_INCLUDE_DIRS}
           ${NETCDF_INCLUDE_DIR})
 
-add_dependencies(hmdf nefis)
+add_dependencies(hmdf nefis proj)
 
 target_compile_definitions(hmdf PRIVATE GIT_VERSION="${GIT_VERSION}")
 target_compile_definitions(hmdf PRIVATE HMDF_LIBRARY)
@@ -339,8 +381,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hmdfConfigVersion.cmake
 set_target_properties(hmdf PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)
 set_target_properties(hmdf PROPERTIES CMAKE_CXX_INLINES_HIDDEN YES)
 
-target_link_libraries(hmdf nefis project_warnings project_options
-                      ${PROJ_LIBRARY})
+target_link_libraries(hmdf nefis project_warnings project_options proj)
 
 if(WIN32)
   link_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/netcdf/libs_vc64)
@@ -508,27 +549,37 @@ if(UNIX OR CYGWIN)
             ENVIRONMENT
             "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}")
       endif(CYGWIN)
+      set_tests_properties(
+        TEST_${TESTNAME}
+        PROPERTIES
+          ENVIRONMENT
+          "PROJ_LIB=${CMAKE_CURRENT_BINARY_DIR}/thirdparty/proj-7.2.0/data")
     endforeach()
 
     # ...Python Test
     if(SWIG_FOUND)
       option(HMDF_PYTHON_TESTING "Run python3 tests" OFF)
       if(HMDF_PYTHON_TESTING)
-        set(PYTHON_TESTNAME TEST_python3_PyHmdf)
         add_test(
-          NAME ${PYTHON_TESTNAME}
+          NAME TEST_python3_PyHmdf
           COMMAND ${PYTHON_EXECUTABLE}
                   ${CMAKE_CURRENT_SOURCE_DIR}/testing/python/adcirc_read.py
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-        set_property(
-          TEST ${PYTHON_TESTNAME}
-          PROPERTY
-            ENVIRONMENT
-            "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}")
-        set_property(
-          TEST ${PYTHON_TESTNAME}
-          APPEND
-          PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}")
+        if(APPLE)
+          set_tests_properties(
+            TEST_python3_PyHmdf
+            PROPERTIES
+              ENVIRONMENT
+              "DYLD_LIBRARY_PATH=$ENV{DYLD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR};PROJ_LIB=${CMAKE_CURRENT_BINARY_DIR}/thirdparty/proj-7.2.0/data"
+          )
+        else()
+          set_tests_properties(
+            TEST_python3_PyHmdf
+            PROPERTIES
+              ENVIRONMENT
+              "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR};PROJ_LIB=${CMAKE_CURRENT_BINARY_DIR}/thirdparty/proj-7.2.0/data"
+          )
+        endif()
       endif()
     endif(SWIG_FOUND)
   endif(HMDF_BUILD_TESTS)

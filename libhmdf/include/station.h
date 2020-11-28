@@ -24,6 +24,12 @@
 #include "hmdf_global.h"
 #include "timepoint.h"
 
+#ifdef SWIG
+#define NODISCARD
+#else
+#define NODISCARD [[nodiscard]]
+#endif
+
 namespace Hmdf {
 
 class Station {
@@ -32,12 +38,12 @@ class Station {
   HMDF_EXPORT Station(size_t id, double x, double y,
                       unsigned char dimension = 1, unsigned int epsg = 4326);
 
-  [[nodiscard]] double HMDF_EXPORT x() const;
-  [[nodiscard]] double HMDF_EXPORT y() const;
-  [[nodiscard]] double HMDF_EXPORT x_original() const;
-  [[nodiscard]] double HMDF_EXPORT y_original() const;
-  [[nodiscard]] double HMDF_EXPORT latitude() const;
-  [[nodiscard]] double HMDF_EXPORT longitude() const;
+  NODISCARD double HMDF_EXPORT x() const;
+  NODISCARD double HMDF_EXPORT y() const;
+  NODISCARD double HMDF_EXPORT x_original() const;
+  NODISCARD double HMDF_EXPORT y_original() const;
+  NODISCARD double HMDF_EXPORT latitude() const;
+  NODISCARD double HMDF_EXPORT longitude() const;
 
   void HMDF_EXPORT setX(double x);
   void HMDF_EXPORT setY(double y);
@@ -47,7 +53,7 @@ class Station {
 
   Hmdf::Timepoint HMDF_EXPORT operator()(size_t index) const;
   Hmdf::Timepoint HMDF_EXPORT *operator[](size_t index);
-  [[nodiscard]] Hmdf::Timepoint HMDF_EXPORT cat(size_t index) const;
+  NODISCARD Hmdf::Timepoint HMDF_EXPORT cat(size_t index) const;
   Hmdf::Timepoint HMDF_EXPORT *at(size_t index);
 
   void HMDF_EXPORT push_back(const Hmdf::Timepoint &p);
@@ -58,37 +64,37 @@ class Station {
 
   void HMDF_EXPORT clear();
 
-  [[nodiscard]] int HMDF_EXPORT epsg() const;
-  [[nodiscard]] int HMDF_EXPORT epsg_original() const;
+  NODISCARD int HMDF_EXPORT epsg() const;
+  NODISCARD int HMDF_EXPORT epsg_original() const;
   void HMDF_EXPORT setEpsg(int epsg);
 
   int HMDF_EXPORT reproject(int epsg);
 
   void HMDF_EXPORT allocate(size_t n);
 
-  [[nodiscard]] std::string HMDF_EXPORT name() const;
+  NODISCARD std::string HMDF_EXPORT name() const;
   void HMDF_EXPORT setName(const std::string &name);
 
-  [[nodiscard]] size_t HMDF_EXPORT index() const;
+  NODISCARD size_t HMDF_EXPORT index() const;
   void HMDF_EXPORT setIndex(const size_t &id);
 
-  [[nodiscard]] std::string HMDF_EXPORT datum() const;
+  NODISCARD std::string HMDF_EXPORT datum() const;
   void HMDF_EXPORT setDatum(const std::string &datum);
 
-  [[nodiscard]] std::string HMDF_EXPORT units() const;
+  NODISCARD std::string HMDF_EXPORT units() const;
   void HMDF_EXPORT setUnits(const std::string &units);
 
-  [[nodiscard]] std::string HMDF_EXPORT timezone() const;
+  NODISCARD std::string HMDF_EXPORT timezone() const;
   void HMDF_EXPORT setTimezone(const std::string &timezone);
 
-  [[nodiscard]] std::string id() const;
-  void setId(const std::string &id);
+  NODISCARD std::string HMDF_EXPORT id() const;
+  void HMDF_EXPORT setId(const std::string &id);
 
-  [[nodiscard]] size_t HMDF_EXPORT dimension() const;
+  NODISCARD size_t HMDF_EXPORT dimension() const;
 
-  [[nodiscard]] size_t HMDF_EXPORT size() const;
+  NODISCARD size_t HMDF_EXPORT size() const;
 
-  [[nodiscard]] double HMDF_EXPORT meanDt() const;
+  NODISCARD double HMDF_EXPORT meanDt() const;
 
   void HMDF_EXPORT show() const;
 
@@ -96,13 +102,13 @@ class Station {
 
   void HMDF_EXPORT shift(const long time, const double value);
 
-  [[nodiscard]] size_t HMDF_EXPORT nNotNull(size_t index = 0) const;
-  [[nodiscard]] double HMDF_EXPORT sum(size_t index = 0) const;
-  [[nodiscard]] double HMDF_EXPORT mean(size_t index = 0) const;
-  [[nodiscard]] double HMDF_EXPORT median(size_t index = 0) const;
-  [[nodiscard]] double HMDF_EXPORT max(size_t index = 0) const;
-  [[nodiscard]] double HMDF_EXPORT min(size_t index = 0) const;
-  [[nodiscard]] double HMDF_EXPORT range(size_t index = 0) const;
+  NODISCARD size_t HMDF_EXPORT nNotNull(size_t index = 0) const;
+  NODISCARD double HMDF_EXPORT sum(size_t index = 0) const;
+  NODISCARD double HMDF_EXPORT mean(size_t index = 0) const;
+  NODISCARD double HMDF_EXPORT median(size_t index = 0) const;
+  NODISCARD double HMDF_EXPORT max(size_t index = 0) const;
+  NODISCARD double HMDF_EXPORT min(size_t index = 0) const;
+  NODISCARD double HMDF_EXPORT range(size_t index = 0) const;
   void HMDF_EXPORT minmax(double &min, double &max, size_t index = 0) const;
 
 #ifndef SWIG
@@ -110,11 +116,11 @@ class Station {
   typedef typename std::vector<Hmdf::Timepoint>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
-  [[nodiscard]] const_iterator HMDF_EXPORT begin() const noexcept;
-  [[nodiscard]] const_iterator HMDF_EXPORT cbegin() const noexcept;
+  NODISCARD const_iterator HMDF_EXPORT begin() const noexcept;
+  NODISCARD const_iterator HMDF_EXPORT cbegin() const noexcept;
   iterator HMDF_EXPORT end() noexcept;
-  [[nodiscard]] const_iterator HMDF_EXPORT end() const noexcept;
-  [[nodiscard]] const_iterator HMDF_EXPORT cend() const noexcept;
+  NODISCARD const_iterator HMDF_EXPORT end() const noexcept;
+  NODISCARD const_iterator HMDF_EXPORT cend() const noexcept;
 
   Hmdf::Timepoint HMDF_EXPORT front() noexcept;
   Hmdf::Timepoint HMDF_EXPORT back() noexcept;
