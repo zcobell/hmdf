@@ -25,6 +25,12 @@
 #include "nefisseriesmetadata.h"
 #include "station.h"
 
+#ifdef SWIG
+#define NODISCARD 
+#else
+#define NODISCARD [[nodiscard]]
+#endif
+
 namespace Hmdf {
 
 class HmdfData {
@@ -38,16 +44,16 @@ class HmdfData {
 
   int HMDF_EXPORT readNefisValue(const std::string &var, size_t layer = 0);
 
-  [[nodiscard]] size_t HMDF_EXPORT nStations() const;
+  NODISCARD size_t HMDF_EXPORT nStations() const;
 
-  [[nodiscard]] std::vector<std::string> HMDF_EXPORT headerData() const;
+  NODISCARD std::vector<std::string> HMDF_EXPORT headerData() const;
   void HMDF_EXPORT setHeaderData(const std::vector<std::string> &headerData);
 
-  [[nodiscard]] bool HMDF_EXPORT success() const;
+  NODISCARD bool HMDF_EXPORT success() const;
 
-  [[nodiscard]] bool HMDF_EXPORT null() const;
+  NODISCARD bool HMDF_EXPORT null() const;
 
-  [[nodiscard]] int HMDF_EXPORT dimension() const;
+  NODISCARD int HMDF_EXPORT dimension() const;
 
   Hmdf::Station HMDF_EXPORT *station(size_t index);
 
@@ -75,18 +81,18 @@ class HmdfData {
   typedef typename std::vector<Hmdf::Station>::const_iterator const_iterator;
 
   iterator HMDF_EXPORT begin() noexcept;
-  [[nodiscard]] const_iterator HMDF_EXPORT cbegin() const noexcept;
+  NODISCARD const_iterator HMDF_EXPORT cbegin() const noexcept;
   iterator HMDF_EXPORT end() noexcept;
-  [[nodiscard]] const_iterator HMDF_EXPORT cend() const noexcept;
+  NODISCARD const_iterator HMDF_EXPORT cend() const noexcept;
 #endif
 
-  [[nodiscard]] std::string HMDF_EXPORT getFilename() const;
+  NODISCARD std::string HMDF_EXPORT getFilename() const;
   void HMDF_EXPORT setFilename(const std::string &filename);
 
-  [[nodiscard]] Hmdf::Date HMDF_EXPORT getColdstart() const;
+  NODISCARD Hmdf::Date HMDF_EXPORT getColdstart() const;
   void HMDF_EXPORT setColdstart(const Hmdf::Date &coldstart);
 
-  [[nodiscard]] std::string HMDF_EXPORT getStationFile() const;
+  NODISCARD std::string HMDF_EXPORT getStationFile() const;
   void HMDF_EXPORT setStationFile(const std::string &stationFile);
 
   void HMDF_EXPORT bounds(Hmdf::Date &begin, Hmdf::Date &end, double &min,

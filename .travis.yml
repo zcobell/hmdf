@@ -6,17 +6,12 @@ addons:
   apt:
     packages:
       - cmake
-      - netcdf-bin
       - libnetcdf-dev
       - swig3.0
       - lcov
-      - libgdal-dev
       - libboost-all-dev
-      - libssl-dev
       - libpython3-dev
       - python3
-      - proj-bin
-      - libproj-dev
 
 after_success:
   # Creating report
