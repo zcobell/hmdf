@@ -23,10 +23,11 @@
 
 #include "hmdf_global.h"
 #include "nefisseriesmetadata.h"
+#include "projection.h"
 #include "station.h"
 
 #ifdef SWIG
-#define NODISCARD 
+#define NODISCARD
 #else
 #define NODISCARD [[nodiscard]]
 #endif
@@ -36,8 +37,8 @@ namespace Hmdf {
 class HmdfData {
  public:
   HMDF_EXPORT explicit HmdfData(const std::string &filename = std::string(),
-                       const Hmdf::Date &coldstart = Hmdf::Date(),
-                       const std::string &stationFile = std::string());
+                                const Hmdf::Date &coldstart = Hmdf::Date(),
+                                const std::string &stationFile = std::string());
 
   int HMDF_EXPORT read();
   static int HMDF_EXPORT write(const std::string &filename);
