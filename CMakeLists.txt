@@ -347,7 +347,7 @@ target_include_directories(
           ${Boost_INCLUDE_DIRS}
           ${NETCDF_INCLUDE_DIR})
 
-add_dependencies(hmdf nefis proj)
+add_dependencies(hmdf nefis proj generate_proj_db)
 
 target_compile_definitions(hmdf PRIVATE GIT_VERSION="${GIT_VERSION}")
 target_compile_definitions(hmdf PRIVATE HMDF_LIBRARY)
