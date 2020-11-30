@@ -520,7 +520,7 @@ if(UNIX OR CYGWIN)
 
     set(TEST_LIST
         "cxx_readAdcirc.cpp" "cxx_readAdcircNetcdf.cpp" "cxx_readNefis.cpp"
-        "cxx_readGenericNetcdf.cpp" "cxx_readImeds.cpp")
+        "cxx_readGenericNetcdf.cpp" "cxx_readImeds.cpp" "cxx_projection.cpp")
 
     foreach(TESTFILE ${TEST_LIST})
       get_filename_component(TESTNAME ${TESTFILE} NAME_WE)

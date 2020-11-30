@@ -31,6 +31,7 @@
     #define SWIG_FILE_WITH_INIT
     #include "hmdf_global.h"
     #include "hmdf.h"
+    #include "projection.h"
     #include "station.h"
     #include "timepoint.h"
     #include "date.h"
@@ -64,3 +65,4 @@ namespace std {
 %include "station.h"
 %include "timepoint.h"
 %include "date.h"
+%include "projection.h"
